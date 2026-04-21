@@ -1,142 +1,61 @@
-// 1. KONFIGURASI FIREBASE (GANTI URL INI)
 const firebaseConfig = {
-    // Masukkan URL Firebase milikmu di bawah ini:
-    databaseURL: "https://air-quality-2f87d-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  // MASUKKAN URL FIREBASE KAMU DI BAWAH INI:
+  databaseURL: "https://air-quality-2f87d-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 2. LOGIKA ISPU
 function getIspu(val) {
-    if (val <= 50) return { lbl: "Baik", cls: "baik", hex: "#00b050" };
-    if (val <= 100) return { lbl: "Sedang", cls: "sedang", hex: "#ffc107" };
-    if (val <= 150) return { lbl: "Sensitif", cls: "sensitif", hex: "#ff9800" };
-    if (val <= 200) return { lbl: "Tidak Sehat", cls: "tidak-sehat", hex: "#ff0000" };
-    if (val <= 300) return { lbl: "Sangat Tidak Sehat", cls: "sangat-tidak-sehat", hex: "#9c27b0" };
-    return { lbl: "Berbahaya", cls: "berbahaya", hex: "#222222" };
+  if (val <= 50) return { lbl: "BAIK", cls: "baik", color: "#10b981" };
+  if (val <= 100) return { lbl: "SEDANG", cls: "sedang", color: "#fbbf24" };
+  if (val <= 150) return { lbl: "SENSITIF", cls: "sensitif", color: "#f97316" };
+  if (val <= 200) return { lbl: "TIDAK SEHAT", cls: "tidak-sehat", color: "#ef4444" };
+  if (val <= 300) return { lbl: "SANGAT TDK SEHAT", cls: "sangat-tidak-sehat", color: "#a855f7" };
+  return { lbl: "BERBAHAYA", cls: "berbahaya", color: "#1f2937" };
 }
 
-const sensorsList = [
-    { id: 'mq7_outdoor', title: 'MQ-7 Outdoor', unit: 'ppm', max: 400 },
-    { id: 'mq7_indoor', title: 'MQ-7 Indoor', unit: 'ppm', max: 400 },
-    { id: 'mq135_outdoor', title: 'MQ-135 Outdoor', unit: 'ppm', max: 400 },
-    { id: 'mq135_indoor', title: 'MQ-135 Indoor', unit: 'ppm', max: 400 },
-    { id: 'pm25_outdoor', title: 'PM2.5 Outdoor', unit: 'µg/m³', max: 400 },
-    { id: 'pm25_indoor', title: 'PM2.5 Indoor', unit: 'µg/m³', max: 400 },
-    { id: 'pm10_outdoor', title: 'PM10 Outdoor', unit: 'µg/m³', max: 400 },
-    { id: 'pm10_indoor', title: 'PM10 Indoor', unit: 'µg/m³', max: 400 }
-];
+const SENSORS = ['mq135_outdoor', 'mq7_outdoor', 'pm25_outdoor', 'pm10_outdoor', 'mq135_indoor', 'mq7_indoor'];
 
-// 3. IDENTIFIKASI HALAMAN
-const dashContainer = document.getElementById('dashboard-container');
-const sumContainer = document.getElementById('summary-container');
-const speedContainer = document.getElementById('speedometer-container');
+// --- SETUP GRAFIK ---
+function getChartOpts(yLabel) {
+  return { responsive: true, maintainAspectRatio: false, animation: { duration: 500 }, 
+    plugins: { legend: { labels: { color: "#e2e8f0" } } }, 
+    scales: { y: { title: { display: true, text: yLabel, color: "#94a3b8" }, grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#94a3b8" } }, x: { grid: { display: false }, ticks: { color: "#94a3b8" } } } };
+}
 
-// Simpan variabel ECharts agar tidak render ulang dari awal
-let echartsInstances = {}; 
+const ctxGas = document.getElementById("gasChart");
+let gasChart = ctxGas ? new Chart(ctxGas.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "MQ-135 Outdoor", data: [], borderColor: "#fbbf24", fill: false, tension: 0.4 }, { label: "MQ-7 Outdoor", data: [], borderColor: "#ef4444", fill: false, tension: 0.4 }] }, options: getChartOpts('PPM') }) : null;
 
-// 4. MENGAMBIL DATA REAL-TIME
+const ctxParticle = document.getElementById("particleChart");
+let particleChart = ctxParticle ? new Chart(ctxParticle.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "PM 2.5 Outdoor", data: [], borderColor: "#3b82f6", fill: false, tension: 0.4 }, { label: "PM 10 Outdoor", data: [], borderColor: "#10b981", fill: false, tension: 0.4 }] }, options: getChartOpts('µg/m³') }) : null;
+
+function updateChart(chart, d1, d2, timeStr) {
+  if(!chart) return;
+  chart.data.labels.push(timeStr); chart.data.datasets[0].data.push(d1); chart.data.datasets[1].data.push(d2);
+  if (chart.data.labels.length > 15) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); chart.data.datasets[1].data.shift(); }
+  chart.update();
+}
+
+// --- AMBIL DATA ---
+db.ref('.info/connected').on('value', snap => {
+  const badge = document.getElementById("conn-status");
+  if (!badge) return;
+  if (snap.val() === true) { badge.className = "status-badge"; badge.innerHTML = '<span id="status-text">TERHUBUNG (LIVE)</span>'; } 
+  else { badge.className = "status-badge offline"; badge.innerHTML = '<span id="status-text">MENUNGGU DATA...</span>'; }
+});
+
 db.ref('sensorData').on('value', (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
+  const data = snapshot.val();
+  if (!data) return;
 
-    // --- JIKA BERADA DI HALAMAN DASHBOARD ---
-    if (dashContainer) {
-        let htmlCards = "";
-        let totalGas = 0, totalPm = 0, countGas = 0, countPm = 0;
+  SENSORS.forEach(id => {
+      let val = data[id] || 0; let status = getIspu(val);
+      let elVal = document.getElementById(`val-${id}`); if (elVal) elVal.innerText = val.toFixed(1);
+      let elStat = document.getElementById(`stat-${id}`); if (elStat) { elStat.innerText = status.lbl; elStat.style.color = status.color; }
+      let elCard = document.getElementById(`card-${id}`); if (elCard) elCard.className = `glass-card sensor-card ${status.cls}`;
+  });
 
-        sensorsList.forEach(s => {
-            let val = data[s.id] || 0;
-            let status = getIspu(val);
-            
-            // Hitung rata-rata
-            if (s.id.includes('pm')) { totalPm += val; countPm++; } 
-            else { totalGas += val; countGas++; }
-
-            htmlCards += `
-                <div class="sensor-card ${status.cls}">
-                    <div class="sensor-title">${s.title}</div>
-                    <div class="sensor-value-line">
-                        <span class="sensor-value">${val}</span>
-                        <span class="sensor-unit">${s.unit}</span>
-                    </div>
-                    <div class="sensor-badge badge-${status.cls}">${status.lbl}</div>
-                </div>`;
-        });
-
-        dashContainer.innerHTML = htmlCards;
-        
-        let avgGas = countGas > 0 ? (totalGas / countGas).toFixed(1) : 0;
-        let avgPm = countPm > 0 ? (totalPm / countPm).toFixed(1) : 0;
-        
-        sumContainer.innerHTML = `
-            <div class="summary-box">
-                <div class="summary-title">Rata-rata Gas</div>
-                <div class="summary-value">${avgGas} <span style="font-size:16px;">ppm</span></div>
-            </div>
-            <div class="summary-box">
-                <div class="summary-title">Rata-rata Partikel</div>
-                <div class="summary-value">${avgPm} <span style="font-size:16px;">µg/m³</span></div>
-            </div>`;
-    }
-
-    // --- JIKA BERADA DI HALAMAN SPEEDOMETER ---
-    if (speedContainer) {
-        const ispuColors = [
-            [50/400, '#00b050'], [100/400, '#ffc107'], [150/400, '#ff9800'],
-            [200/400, '#ff0000'], [300/400, '#9c27b0'], [1, '#222222']
-        ];
-
-        // Buat kotak div pertama kali jika belum ada
-        if (speedContainer.innerHTML.trim() === "") {
-            sensorsList.forEach(s => {
-                speedContainer.innerHTML += `
-                <div class="chart-box">
-                    <h3 style="text-align:center; border:none; padding:0; margin-bottom:0; font-size:16px;">${s.title}</h3>
-                    <div id="sp-${s.id}" style="width:100%; height:280px;"></div>
-                </div>`;
-            });
-        }
-
-        // Update nilai masing-masing jarum
-        setTimeout(() => {
-            sensorsList.forEach(s => {
-                let val = data[s.id] || 0;
-                let status = getIspu(val);
-                let domId = `sp-${s.id}`;
-                let chartDom = document.getElementById(domId);
-                
-                if (chartDom) {
-                    if (!echartsInstances[s.id]) {
-                        echartsInstances[s.id] = echarts.init(chartDom);
-                    }
-                    
-                    let chart = echartsInstances[s.id];
-                    chart.setOption({
-                        series: [{
-                            type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: s.max, splitNumber: 8,
-                            axisLine: { lineStyle: { width: 16, color: ispuColors } },
-                            pointer: { width: 5 },
-                            axisTick: { distance: -16, length: 8, lineStyle: { color: '#fff', width: 2 } },
-                            splitLine: { distance: -16, length: 16, lineStyle: { color: '#fff', width: 3 } },
-                            axisLabel: {
-                                distance: 22, color: '#444', fontSize: 11, fontWeight: 'bold',
-                                formatter: function (v) { return [0, 50, 100, 150, 200, 300, 400].includes(v) ? v : ''; }
-                            },
-                            detail: {
-                                formatter: function(v) { return '{value|' + v + '} {unit|' + s.unit + '}\n{status|' + status.lbl + '}'; },
-                                rich: {
-                                    value: { fontSize: 26, fontWeight: '900', color: '#111', lineHeight: 30 },
-                                    unit: { fontSize: 13, color: '#666', lineHeight: 30 },
-                                    status: { fontSize: 12, fontWeight: 'bold', color: status.hex, lineHeight: 20 }
-                                },
-                                offsetCenter: [0, '65%']
-                            },
-                            data: [{ value: val }]
-                        }]
-                    });
-                }
-            });
-        }, 100);
-    }
+  const timeNow = new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  updateChart(gasChart, data['mq135_outdoor']||0, data['mq7_outdoor']||0, timeNow);
+  updateChart(particleChart, data['pm25_outdoor']||0, data['pm10_outdoor']||0, timeNow);
 });
