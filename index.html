@@ -1,37 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nano Banana - Dashboard</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nano Banana - Dashboard</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="topbar">
-        <div class="topbar-brand">AIR QUALITY</div>
-        <div class="topbar-menu">
-            <a href="index.html" class="active">Dashboard</a>
-            <a href="speedometer.html">Speedometer</a>
-            <a href="grafik.html">Grafik</a>
-            <a href="history.html">History</a>
-        </div>
+  <div class="topbar">
+    <div class="topbar-brand">NANO BANANA</div>
+    <div class="topbar-menu">
+      <a href="index.html" class="active">Dashboard</a>
+      <a href="speedometer.html">Speedometer</a>
+      <a href="grafik.html">Grafik</a>
+      <a href="history.html">History</a>
+      <div class="status-badge offline" id="conn-status">
+        <span id="status-text">Menghubungkan...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+    <div class="section-title">Kualitas Udara Luar Ruangan (Outdoor)</div>
+    <div class="dashboard-grid" id="grid-outdoor">
+      <div class="glass-card sensor-card" id="card-mq135_outdoor">
+        <div class="sensor-title">MQ-135</div>
+        <div class="sensor-value-line"><span class="sensor-value" id="val-mq135_outdoor">--</span><span class="sensor-unit">PPM</span></div>
+        <div class="sensor-status" id="stat-mq135_outdoor">MENUNGGU DATA</div>
+      </div>
+      <div class="glass-card sensor-card" id="card-mq7_outdoor">
+        <div class="sensor-title">MQ-7</div>
+        <div class="sensor-value-line"><span class="sensor-value" id="val-mq7_outdoor">--</span><span class="sensor-unit">PPM</span></div>
+        <div class="sensor-status" id="stat-mq7_outdoor">MENUNGGU DATA</div>
+      </div>
+      <div class="glass-card sensor-card" id="card-pm25_outdoor">
+        <div class="sensor-title">PM 2.5</div>
+        <div class="sensor-value-line"><span class="sensor-value" id="val-pm25_outdoor">--</span><span class="sensor-unit">µg/m³</span></div>
+        <div class="sensor-status" id="stat-pm25_outdoor">MENUNGGU DATA</div>
+      </div>
+      <div class="glass-card sensor-card" id="card-pm10_outdoor">
+        <div class="sensor-title">PM 10</div>
+        <div class="sensor-value-line"><span class="sensor-value" id="val-pm10_outdoor">--</span><span class="sensor-unit">µg/m³</span></div>
+        <div class="sensor-status" id="stat-pm10_outdoor">MENUNGGU DATA</div>
+      </div>
     </div>
 
-    <div class="page-wrap">
-        <div class="page-header">
-            <h1>Dashboard Monitoring Kualitas Udara</h1>
-            <p>Tampilan Utama (Sinkron Database Real-time)</p>
-        </div>
-
-        <div class="summary-grid" id="summary-container">
-            </div>
-
-        <div class="card-grid" id="dashboard-container">
-            </div>
+    <div class="section-title">Kualitas Udara Dalam Ruangan (Indoor)</div>
+    <div class="dashboard-grid" id="grid-indoor">
+      <div class="glass-card sensor-card" id="card-mq135_indoor">
+        <div class="sensor-title">MQ-135</div>
+        <div class="sensor-value-line"><span class="sensor-value" id="val-mq135_indoor">--</span><span class="sensor-unit">PPM</span></div>
+        <div class="sensor-status" id="stat-mq135_indoor">MENUNGGU DATA</div>
+      </div>
+      <div class="glass-card sensor-card" id="card-mq7_indoor">
+        <div class="sensor-title">MQ-7</div>
+        <div class="sensor-value-line"><span class="sensor-value" id="val-mq7_indoor">--</span><span class="sensor-unit">PPM</span></div>
+        <div class="sensor-status" id="stat-mq7_indoor">MENUNGGU DATA</div>
+      </div>
     </div>
 
-    <script src="assets/js/app.js"></script>
+    <div class="glass-card" style="margin-top: 30px;">
+      <div class="section-title">Tren Kualitas Udara (Real-time)</div>
+      <div class="card-grid">
+        <div class="chart-box"><canvas id="gasChart"></canvas></div>
+        <div class="chart-box"><canvas id="particleChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
 </body>
 </html>
