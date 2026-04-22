@@ -110,22 +110,21 @@ db.ref('sensorData').on('value', (snapshot) => {
   const data = snapshot.val();
   if (!data) return;
 
-  // --- UPDATE HALAMAN DASHBOARD KOTAK KACA ---
+  // Update Dashboard
   SENSORS.forEach(s => {
       let val = data[s.id] || 0; 
       let status = getIspu(val);
-      
       let elVal = document.getElementById(`val-${s.id}`); if (elVal) elVal.innerText = val.toFixed(1);
       let elStat = document.getElementById(`stat-${s.id}`); if (elStat) { elStat.innerText = status.lbl; elStat.style.color = status.color; }
       let elCard = document.getElementById(`card-${s.id}`); if (elCard) elCard.className = `glass-card sensor-card ${status.cls}`;
   });
 
-  // --- UPDATE GRAFIK REAL-TIME DASHBOARD ---
+  // Update Grafik Dashboard
   const timeNow = new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   updateChart(gasChart, data['mq135_outdoor']||0, data['mq7_outdoor']||0, timeNow);
   updateChart(particleChart, data['pm25_outdoor']||0, data['pm10_outdoor']||0, timeNow);
 
-  // --- UPDATE HALAMAN SPEEDOMETER ---
+  // Update Speedometer
   if (speedContainer) {
       setTimeout(() => {
           SENSORS.forEach(s => {
@@ -159,7 +158,7 @@ db.ref('sensorData').on('value', (snapshot) => {
 // =======================================================
 const tableBody = document.getElementById('table-body');
 
-// Hanya jalankan penarikan data log (yang berat) jika kita berada di halaman History atau Grafik
+// Eksekusi jika berada di halaman Grafik atau History
 if (tableBody || ctxHistGas) {
     db.ref('logs').limitToLast(30).on('value', (snapshot) => {
         let dataArray = [];
@@ -167,10 +166,10 @@ if (tableBody || ctxHistGas) {
             dataArray.push(childSnapshot.val());
         });
 
-        // A. UPDATE TABEL HISTORY (Urutan: Terbaru di atas)
+        // UPDATE TABEL HISTORY (Terbaru di atas)
         if (tableBody) {
             tableBody.innerHTML = "";
-            let reversedData = [...dataArray].reverse().slice(0, 20); // Ambil 20 terbaru untuk tabel
+            let reversedData = [...dataArray].reverse().slice(0, 20); 
             
             reversedData.forEach((row, index) => {
                 const tr = document.createElement('tr');
@@ -191,7 +190,7 @@ if (tableBody || ctxHistGas) {
             });
         }
 
-        // B. UPDATE GRAFIK HISTORY (Urutan: Kiri ke Kanan / Lama ke Baru)
+        // UPDATE GRAFIK HISTORY (Lama ke Baru)
         if (ctxHistGas && histGasChart && histPartChart) {
             let labels = [];
             let dMQ135 = [], dMQ7 = [], dPM25 = [], dPM10 = [];
