@@ -1,34 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nano Banana - Speedometer</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Banana - Speedometer</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
-  <div class="topbar">
-    <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
-    <div class="topbar-menu">
-      <a href="index.html">Dashboard</a>
-      <a href="speedometer.html" class="active">Speedometer</a>
-      <a href="grafik.html">Grafik</a>
-      <a href="history.html">History</a>
-      <div class="status-badge offline" id="conn-status"><span id="status-text">Menghubungkan...</span></div>
+    <div class="topbar">
+        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
+        <div class="topbar-menu">
+            <a href="index.html">Dashboard</a>
+            <a href="speedometer.html" class="active">Speedometer</a>
+            <a href="grafik.html">Grafik</a>
+            <a href="history.html">History</a>
+        </div>
     </div>
-  </div>
 
-  <div class="page-wrap">
-    <div class="page-header">
-      <h1>Fitur Speedometer (Real-time)</h1>
-      <p>Pemantauan pergerakan indikator kualitas udara secara langsung</p>
+    <div class="page-wrap">
+        <div class="page-header">
+            <h1><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
+            <p>Visualisasi gaya meteran kendaraan untuk pantauan kualitas udara.</p>
+        </div>
+        <div id="speedometer-container" class="card-grid"></div>
     </div>
-    <div class="card-grid" id="speedometer-container"></div>
-  </div>
-  <script src="assets/js/app.js"></script>
+    
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
