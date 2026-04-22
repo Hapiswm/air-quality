@@ -145,3 +145,53 @@ db.ref('sensorData').on('value', (snapshot) => {
       }, 100);
   }
 });
+
+// =======================================================
+// 6. LOGIKA HALAMAN HISTORY (TABEL & RESET)
+// =======================================================
+const tableBody = document.getElementById('table-body');
+
+if (tableBody) {
+    // Ambil 20 data terakhir dari folder /logs di Firebase
+    db.ref('logs').limitToLast(20).on('value', (snapshot) => {
+        tableBody.innerHTML = ""; // Bersihkan tabel sebelum diisi
+        let index = 1;
+        
+        let dataArray = [];
+        snapshot.forEach((childSnapshot) => {
+            dataArray.push(childSnapshot.val());
+        });
+        dataArray.reverse(); // Balik urutan array agar yang terbaru di atas
+
+        dataArray.forEach((row) => {
+            const tr = document.createElement('tr');
+            
+            // Tentukan status berdasarkan MQ-135 Indoor
+            let valISPU = row.mq135_indoor || 0;
+            const status = getIspu(valISPU);
+            
+            // Format waktu
+            let waktuStr = row.timestamp ? `Log-${row.timestamp}` : "Data Baru";
+
+            tr.innerHTML = `
+                <td>${index++}</td>
+                <td style="color: var(--text-muted); font-family: monospace;">${waktuStr}</td>
+                <td style="font-weight: bold;">${(row.mq135_indoor || 0).toFixed(1)} PPM</td>
+                <td>${(row.mq7_indoor || 0).toFixed(1)} PPM</td>
+                <td>${(row.pm25_indoor || 0).toFixed(1)} µg/m³</td>
+                <td>${(row.pm10_indoor || 0).toFixed(1)} µg/m³</td>
+                <td><span style="background:${status.color}; color:#fff; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:bold; letter-spacing:1px;">${status.lbl}</span></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    });
+}
+
+// Fungsi Hapus History (Dipanggil oleh tombol di HTML)
+window.resetHistory = function() {
+    if (confirm("⚠️ PERINGATAN!\n\nApakah kamu yakin ingin menghapus SEMUA riwayat data dari database? Tindakan ini tidak bisa dibatalkan.")) {
+        db.ref('logs').remove()
+            .then(() => alert("Riwayat berhasil dikosongkan!"))
+            .catch((error) => alert("Gagal menghapus: " + error.message));
+    }
+};
