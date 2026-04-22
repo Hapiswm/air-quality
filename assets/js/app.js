@@ -65,7 +65,6 @@ const speedContainer = document.getElementById('speedometer-container');
 let echartsInstances = {};
 const ispuColors = [ [50/400, '#10b981'], [100/400, '#fbbf24'], [150/400, '#f97316'], [200/400, '#ef4444'], [300/400, '#a855f7'], [1, '#dc2626'] ];
 
-// Buat kotak HTML untuk setiap sensor jika di halaman speedometer
 if (speedContainer) {
     SENSORS.forEach(s => {
         speedContainer.innerHTML += `
@@ -79,7 +78,6 @@ if (speedContainer) {
 // =======================================================
 // 5. KONEKSI & UPDATE DATA REAL-TIME FIREBASE
 // =======================================================
-// Indikator Koneksi Internet/Firebase
 db.ref('.info/connected').on('value', snap => {
   const badge = document.getElementById("conn-status");
   if (!badge) return;
@@ -92,7 +90,6 @@ db.ref('.info/connected').on('value', snap => {
   }
 });
 
-// Terima Data Sensor
 db.ref('sensorData').on('value', (snapshot) => {
   const data = snapshot.val();
   if (!data) return;
