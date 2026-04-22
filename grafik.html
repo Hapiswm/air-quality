@@ -1,26 +1,48 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nano Banana - Grafik</title>
-  <link rel="stylesheet" href="assets/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Banana - Grafik</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="topbar">
-    <div class="topbar-brand">NANO BANANA</div>
-    <div class="topbar-menu">
-      <a href="index.html">Dashboard</a>
-      <a href="speedometer.html">Speedometer</a>
-      <a href="grafik.html" class="active">Grafik</a>
-      <a href="history.html">History</a>
+    <div class="topbar">
+        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
+        <div class="topbar-menu">
+            <a href="index.html">Dashboard</a>
+            <a href="speedometer.html">Speedometer</a>
+            <a href="grafik.html" class="active">Grafik</a>
+            <a href="history.html">History</a>
+        </div>
     </div>
-  </div>
-  <div class="page-wrap">
-    <div class="page-header">
-      <h1>Grafik Komparasi Detail</h1>
-      <p>Fitur ini masih dalam tahap pengembangan UI/UX.</p>
+    
+    <div class="page-wrap">
+        <div class="page-header">
+            <h1><i class="fa-solid fa-chart-line"></i> Grafik Riwayat Kualitas Udara</h1>
+            <p>Memantau tren fluktuasi gas dan partikel dari 30 data riwayat terakhir.</p>
+        </div>
+
+        <div class="card-grid" style="grid-template-columns: 1fr;">
+            <div class="glass-card">
+                <div class="section-title"><i class="fa-solid fa-smog"></i> Tren Gas Beracun & Polusi (PPM)</div>
+                <div class="chart-box" style="height: 350px;">
+                    <canvas id="historyGasChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top: 20px;">
+                <div class="section-title"><i class="fa-solid fa-wind"></i> Tren Partikel Debu (µg/m³)</div>
+                <div class="chart-box" style="height: 350px;">
+                    <canvas id="historyParticleChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
