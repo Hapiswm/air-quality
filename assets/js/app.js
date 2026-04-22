@@ -46,10 +46,16 @@ function getChartOpts(yLabel) {
 }
 
 const ctxGas = document.getElementById("gasChart");
-let gasChart = ctxGas ? new Chart(ctxGas.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "MQ-135 Outdoor", data: [], borderColor: "#fbbf24", fill: false, tension: 0.4 }, { label: "MQ-7 Outdoor", data: [], borderColor: "#ef4444", fill: false, tension: 0.4 }] }, options: getChartOpts('PPM') }) : null;
+let gasChart = null;
+if (ctxGas) {
+    gasChart = new Chart(ctxGas.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "MQ-135 Outdoor", data: [], borderColor: "#fbbf24", fill: false, tension: 0.4 }, { label: "MQ-7 Outdoor", data: [], borderColor: "#ef4444", fill: false, tension: 0.4 }] }, options: getChartOpts('PPM') });
+}
 
 const ctxParticle = document.getElementById("particleChart");
-let particleChart = ctxParticle ? new Chart(ctxParticle.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "PM 2.5 Outdoor", data: [], borderColor: "#3b82f6", fill: false, tension: 0.4 }, { label: "PM 10 Outdoor", data: [], borderColor: "#10b981", fill: false, tension: 0.4 }] }, options: getChartOpts('µg/m³') }) : null;
+let particleChart = null;
+if (ctxParticle) {
+    particleChart = new Chart(ctxParticle.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "PM 2.5 Outdoor", data: [], borderColor: "#3b82f6", fill: false, tension: 0.4 }, { label: "PM 10 Outdoor", data: [], borderColor: "#10b981", fill: false, tension: 0.4 }] }, options: getChartOpts('µg/m³') });
+}
 
 function updateChart(chart, d1, d2, timeStr) {
   if(!chart) return;
@@ -79,19 +85,24 @@ if (speedContainer) {
 // 5. PERSIAPAN GRAFIK RIWAYAT (CHART.JS HISTORY)
 // =======================================================
 const ctxHistGas = document.getElementById("historyGasChart");
+let histGasChart = null;
+if (ctxHistGas) {
+    histGasChart = new Chart(ctxHistGas.getContext("2d"), { 
+        type: "line", 
+        data: { labels: [], datasets: [{ label: "MQ-135 Indoor", data: [], borderColor: "#fbbf24", backgroundColor: "rgba(251, 191, 36, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }, { label: "MQ-7 Indoor", data: [], borderColor: "#ef4444", backgroundColor: "rgba(239, 68, 68, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }] }, 
+        options: getChartOpts('Nilai Gas (PPM)') 
+    });
+}
+
 const ctxHistPart = document.getElementById("historyParticleChart");
-
-let histGasChart = ctxHistGas ? new Chart(ctxHistGas.getContext("2d"), { 
-    type: "line", 
-    data: { labels: [], datasets: [{ label: "MQ-135 Indoor", data: [], borderColor: "#fbbf24", backgroundColor: "rgba(251, 191, 36, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }, { label: "MQ-7 Indoor", data: [], borderColor: "#ef4444", backgroundColor: "rgba(239, 68, 68, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }] }, 
-    options: getChartOpts('Nilai Gas (PPM)') 
-}) : null;
-
-let histPartChart = ctxHistPart ? new Chart(ctxHistPart.getContext("2d"), { 
-    type: "line", 
-    data: { labels: [], datasets: [{ label: "PM 2.5 Indoor", data: [], borderColor: "#3b82f6", backgroundColor: "rgba(59, 130, 246, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }, { label: "PM 10 Indoor", data: [], borderColor: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }] }, 
-    options: getChartOpts('Nilai Partikel (µg/m³)') 
-}) : null;
+let histPartChart = null;
+if (ctxHistPart) {
+    histPartChart = new Chart(ctxHistPart.getContext("2d"), { 
+        type: "line", 
+        data: { labels: [], datasets: [{ label: "PM 2.5 Indoor", data: [], borderColor: "#3b82f6", backgroundColor: "rgba(59, 130, 246, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }, { label: "PM 10 Indoor", data: [], borderColor: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }] }, 
+        options: getChartOpts('Nilai Partikel (µg/m³)') 
+    });
+}
 
 // =======================================================
 // 6. KONEKSI REAL-TIME: DASHBOARD & SPEEDOMETER
@@ -110,7 +121,7 @@ db.ref('sensorData').on('value', (snapshot) => {
   const data = snapshot.val();
   if (!data) return;
 
-  // Update Dashboard
+  // Update Dashboard Kotak Kaca
   SENSORS.forEach(s => {
       let val = data[s.id] || 0; 
       let status = getIspu(val);
@@ -120,9 +131,11 @@ db.ref('sensorData').on('value', (snapshot) => {
   });
 
   // Update Grafik Dashboard
-  const timeNow = new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  updateChart(gasChart, data['mq135_outdoor']||0, data['mq7_outdoor']||0, timeNow);
-  updateChart(particleChart, data['pm25_outdoor']||0, data['pm10_outdoor']||0, timeNow);
+  if (gasChart || particleChart) {
+      const timeNow = new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      updateChart(gasChart, data['mq135_outdoor']||0, data['mq7_outdoor']||0, timeNow);
+      updateChart(particleChart, data['pm25_outdoor']||0, data['pm10_outdoor']||0, timeNow);
+  }
 
   // Update Speedometer
   if (speedContainer) {
@@ -158,7 +171,7 @@ db.ref('sensorData').on('value', (snapshot) => {
 // =======================================================
 const tableBody = document.getElementById('table-body');
 
-// Eksekusi jika berada di halaman Grafik atau History
+// Hanya jalankan jika kita berada di halaman History atau Grafik
 if (tableBody || ctxHistGas) {
     db.ref('logs').limitToLast(30).on('value', (snapshot) => {
         let dataArray = [];
@@ -166,7 +179,7 @@ if (tableBody || ctxHistGas) {
             dataArray.push(childSnapshot.val());
         });
 
-        // UPDATE TABEL HISTORY (Terbaru di atas)
+        // A. UPDATE TABEL HISTORY (Urutan: Terbaru di atas)
         if (tableBody) {
             tableBody.innerHTML = "";
             let reversedData = [...dataArray].reverse().slice(0, 20); 
@@ -190,8 +203,8 @@ if (tableBody || ctxHistGas) {
             });
         }
 
-        // UPDATE GRAFIK HISTORY (Lama ke Baru)
-        if (ctxHistGas && histGasChart && histPartChart) {
+        // B. UPDATE GRAFIK HISTORY (Urutan: Kiri ke Kanan / Lama ke Baru)
+        if (histGasChart && histPartChart) {
             let labels = [];
             let dMQ135 = [], dMQ7 = [], dPM25 = [], dPM10 = [];
 
