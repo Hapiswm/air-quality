@@ -1,52 +1,94 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nano Banana - Dashboard</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Banana - Dashboard</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="topbar">
-    <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
-    <div class="topbar-menu">
-      <a href="index.html" class="active">Dashboard</a>
-      <a href="speedometer.html">Speedometer</a>
-      <a href="grafik.html">Grafik</a>
-      <a href="history.html">History</a>
-      <div class="status-badge offline" id="conn-status"><span id="status-text">Menghubungkan...</span></div>
-    </div>
-  </div>
-
-  <div class="page-wrap">
-    <div class="section-title"><i class="fa-solid fa-sun"></i> Udara Luar Ruangan (Outdoor)</div>
-    <div class="dashboard-grid" id="grid-outdoor">
-      <div class="glass-card sensor-card" id="card-mq135_outdoor"><div class="sensor-title">MQ-135</div><div class="sensor-value-line"><span class="sensor-value" id="val-mq135_outdoor">--</span><span class="sensor-unit">PPM</span></div><div class="sensor-status" id="stat-mq135_outdoor">MENUNGGU</div></div>
-      <div class="glass-card sensor-card" id="card-mq7_outdoor"><div class="sensor-title">MQ-7</div><div class="sensor-value-line"><span class="sensor-value" id="val-mq7_outdoor">--</span><span class="sensor-unit">PPM</span></div><div class="sensor-status" id="stat-mq7_outdoor">MENUNGGU</div></div>
-      <div class="glass-card sensor-card" id="card-pm25_outdoor"><div class="sensor-title">PM 2.5</div><div class="sensor-value-line"><span class="sensor-value" id="val-pm25_outdoor">--</span><span class="sensor-unit">µg/m³</span></div><div class="sensor-status" id="stat-pm25_outdoor">MENUNGGU</div></div>
-      <div class="glass-card sensor-card" id="card-pm10_outdoor"><div class="sensor-title">PM 10</div><div class="sensor-value-line"><span class="sensor-value" id="val-pm10_outdoor">--</span><span class="sensor-unit">µg/m³</span></div><div class="sensor-status" id="stat-pm10_outdoor">MENUNGGU</div></div>
+    <div class="topbar">
+        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
+        <div class="topbar-menu">
+            <a href="index.html" class="active">Dashboard</a>
+            <a href="speedometer.html">Speedometer</a>
+            <a href="grafik.html">Grafik</a>
+            <a href="history.html">History</a>
+        </div>
     </div>
 
-    <div class="section-title"><i class="fa-solid fa-house-chimney"></i> Udara Dalam Ruangan (Indoor)</div>
-    <div class="dashboard-grid" id="grid-indoor">
-      <div class="glass-card sensor-card" id="card-mq135_indoor"><div class="sensor-title">MQ-135</div><div class="sensor-value-line"><span class="sensor-value" id="val-mq135_indoor">--</span><span class="sensor-unit">PPM</span></div><div class="sensor-status" id="stat-mq135_indoor">MENUNGGU</div></div>
-      <div class="glass-card sensor-card" id="card-mq7_indoor"><div class="sensor-title">MQ-7</div><div class="sensor-value-line"><span class="sensor-value" id="val-mq7_indoor">--</span><span class="sensor-unit">PPM</span></div><div class="sensor-status" id="stat-mq7_indoor">MENUNGGU</div></div>
-      <div class="glass-card sensor-card" id="card-pm25_indoor"><div class="sensor-title">PM 2.5</div><div class="sensor-value-line"><span class="sensor-value" id="val-pm25_indoor">--</span><span class="sensor-unit">µg/m³</span></div><div class="sensor-status" id="stat-pm25_indoor">MENUNGGU</div></div>
-      <div class="glass-card sensor-card" id="card-pm10_indoor"><div class="sensor-title">PM 10</div><div class="sensor-value-line"><span class="sensor-value" id="val-pm10_indoor">--</span><span class="sensor-unit">µg/m³</span></div><div class="sensor-status" id="stat-pm10_indoor">MENUNGGU</div></div>
-    </div>
+    <div class="page-wrap">
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><i class="fa-solid fa-house"></i> Pemantauan Real-time</h1>
+                    <p>Dashboard Kualitas Udara (Indoor vs Outdoor)</p>
+                </div>
+                <div id="conn-status" class="status-badge offline"><i class="fa-solid fa-cloud-bolt"></i> <span id="status-text">MENUNGGU DATA...</span></div>
+            </div>
+        </div>
 
-    <div class="glass-card" style="margin-top: 30px;">
-      <div class="section-title"><i class="fa-solid fa-chart-area"></i> Tren Kualitas Udara (Real-time)</div>
-      <div class="card-grid">
-        <div class="chart-box"><canvas id="gasChart"></canvas></div>
-        <div class="chart-box"><canvas id="particleChart"></canvas></div>
-      </div>
+        <div class="card-grid">
+            <div class="glass-card sensor-card" id="card-mq135_indoor">
+                <div class="sensor-title">MQ-135 (Indoor)</div>
+                <div class="sensor-val"><span id="val-mq135_indoor">0.0</span> <span class="sensor-unit">PPM</span></div>
+                <div class="sensor-stat" id="stat-mq135_indoor">MENUNGGU</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-mq7_indoor">
+                <div class="sensor-title">MQ-7 (Indoor)</div>
+                <div class="sensor-val"><span id="val-mq7_indoor">0.0</span> <span class="sensor-unit">PPM</span></div>
+                <div class="sensor-stat" id="stat-mq7_indoor">MENUNGGU</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-pm25_indoor">
+                <div class="sensor-title">PM 2.5 (Indoor)</div>
+                <div class="sensor-val"><span id="val-pm25_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div class="sensor-stat" id="stat-pm25_indoor">MENUNGGU</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-pm10_indoor">
+                <div class="sensor-title">PM 10 (Indoor)</div>
+                <div class="sensor-val"><span id="val-pm10_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div class="sensor-stat" id="stat-pm10_indoor">MENUNGGU</div>
+            </div>
+
+            <div class="glass-card sensor-card" id="card-mq135_outdoor">
+                <div class="sensor-title">MQ-135 (Outdoor)</div>
+                <div class="sensor-val"><span id="val-mq135_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div>
+                <div class="sensor-stat" id="stat-mq135_outdoor">MENUNGGU</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-mq7_outdoor">
+                <div class="sensor-title">MQ-7 (Outdoor)</div>
+                <div class="sensor-val"><span id="val-mq7_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div>
+                <div class="sensor-stat" id="stat-mq7_outdoor">MENUNGGU</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-pm25_outdoor">
+                <div class="sensor-title">PM 2.5 (Outdoor)</div>
+                <div class="sensor-val"><span id="val-pm25_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div class="sensor-stat" id="stat-pm25_outdoor">MENUNGGU</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-pm10_outdoor">
+                <div class="sensor-title">PM 10 (Outdoor)</div>
+                <div class="sensor-val"><span id="val-pm10_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div class="sensor-stat" id="stat-pm10_outdoor">MENUNGGU</div>
+            </div>
+        </div>
+
+        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
+            <div class="glass-card">
+                <div class="section-title">Live: Gas Beracun (Outdoor)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div>
+            </div>
+            <div class="glass-card">
+                <div class="section-title">Live: Partikel Debu (Outdoor)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div>
+            </div>
+        </div>
     </div>
-  </div>
-  <script src="assets/js/app.js"></script>
+    
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
