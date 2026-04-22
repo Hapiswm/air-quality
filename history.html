@@ -1,26 +1,65 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nano Banana - History</title>
-  <link rel="stylesheet" href="assets/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Banana - History</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        .table-container { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; color: var(--text-main); font-size: 14px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid var(--glass-border); text-align: center; }
+        th { background: rgba(0,0,0,0.2); color: var(--accent-yellow); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        tr:hover { background: rgba(255,255,255,0.05); }
+        .btn-reset { background: var(--ispu-tidak-sehat); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-reset:hover { background: #b91c1c; }
+        .header-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="topbar-brand">NANO BANANA</div>
-    <div class="topbar-menu">
-      <a href="index.html">Dashboard</a>
-      <a href="speedometer.html">Speedometer</a>
-      <a href="grafik.html">Grafik</a>
-      <a href="history.html" class="active">History</a>
+    <div class="topbar">
+        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
+        <div class="topbar-menu">
+            <a href="index.html">Dashboard</a>
+            <a href="speedometer.html">Speedometer</a>
+            <a href="grafik.html">Grafik</a>
+            <a href="history.html" class="active">History</a>
+        </div>
     </div>
-  </div>
-  <div class="page-wrap">
-    <div class="page-header">
-      <h1>Riwayat Data Sensor (Log)</h1>
-      <p>Fitur tabel history sedang dalam sinkronisasi Database.</p>
+    
+    <div class="page-wrap">
+        <div class="page-header">
+            <h1><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Data Sensor</h1>
+            <p>Daftar log aktivitas sensor terbaru yang tersimpan di Cloud.</p>
+        </div>
+
+        <div class="glass-card">
+            <div class="header-action">
+                <div class="section-title" style="margin-bottom:0;">20 Data Terakhir</div>
+                <button class="btn-reset" onclick="resetHistory()"><i class="fa-solid fa-trash"></i> HAPUS RIWAYAT</button>
+            </div>
+            <div class="table-container">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Waktu (Timestamp)</th>
+                            <th>MQ-135 (In)</th>
+                            <th>MQ-7 (In)</th>
+                            <th>PM 2.5 (In)</th>
+                            <th>PM 10 (In)</th>
+                            <th>Status Udara</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-  </div>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
