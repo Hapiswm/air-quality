@@ -76,22 +76,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- SETUP GRAFIK HISTORY ---
-    const ctxHistGas = document.getElementById("historyGasChart");
-    let histGasChart = ctxHistGas ? new Chart(ctxHistGas.getContext("2d"), { 
-        type: "line", 
-        data: { labels: [], datasets: [{ label: "MQ-135 Indoor", data: [], borderColor: "#fbbf24", backgroundColor: "rgba(251, 191, 36, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }, { label: "MQ-7 Indoor", data: [], borderColor: "#ef4444", backgroundColor: "rgba(239, 68, 68, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }] }, 
-        options: getChartOpts('Nilai Gas (PPM)') 
-    }) : null;
+    // --- SETUP GRAFIK HISTORY (4 GRAFIK) ---
+    const ctxMq135 = document.getElementById('chart-mq135');
+    let c_Mq135 = ctxMq135 ? new Chart(ctxMq135.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "Outdoor", data: [], borderColor: "#e86b6b", fill: false, tension: 0.3 }, { label: "Indoor", data: [], borderColor: "#f4d35e", fill: false, tension: 0.3 }] }, options: getChartOpts('PPM') }) : null;
+    
+    const ctxMq7 = document.getElementById('chart-mq7');
+    let c_Mq7 = ctxMq7 ? new Chart(ctxMq7.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "Outdoor", data: [], borderColor: "#e86b6b", fill: false, tension: 0.3 }, { label: "Indoor", data: [], borderColor: "#f4d35e", fill: false, tension: 0.3 }] }, options: getChartOpts('PPM') }) : null;
+    
+    const ctxPm25 = document.getElementById('chart-pm25');
+    let c_Pm25 = ctxPm25 ? new Chart(ctxPm25.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "Outdoor", data: [], borderColor: "#e86b6b", fill: false, tension: 0.3 }, { label: "Indoor", data: [], borderColor: "#f4d35e", fill: false, tension: 0.3 }] }, options: getChartOpts('µg/m³') }) : null;
+    
+    const ctxPm10 = document.getElementById('chart-pm10');
+    let c_Pm10 = ctxPm10 ? new Chart(ctxPm10.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "Outdoor", data: [], borderColor: "#e86b6b", fill: false, tension: 0.3 }, { label: "Indoor", data: [], borderColor: "#f4d35e", fill: false, tension: 0.3 }] }, options: getChartOpts('µg/m³') }) : null;
 
-    const ctxHistPart = document.getElementById("historyParticleChart");
-    let histPartChart = ctxHistPart ? new Chart(ctxHistPart.getContext("2d"), { 
-        type: "line", 
-        data: { labels: [], datasets: [{ label: "PM 2.5 Indoor", data: [], borderColor: "#3b82f6", backgroundColor: "rgba(59, 130, 246, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }, { label: "PM 10 Indoor", data: [], borderColor: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.1)", borderWidth: 2, fill: true, tension: 0.4 }] }, 
-        options: getChartOpts('Nilai Partikel (µg/m³)') 
-    }) : null;
-
-    // --- KONEKSI FIREBASE (REAL-TIME) ---
+    // --- KONEKSI FIREBASE (REAL-TIME DASHBOARD) ---
     db.ref('.info/connected').on('value', snap => {
         const badge = document.getElementById("conn-status");
         if (badge) {
@@ -150,65 +148,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- KONEKSI FIREBASE (HISTORY / LOGS) ---
     const tableBody = document.getElementById('table-body');
-    if (tableBody || ctxHistGas) {
+    if (tableBody || ctxMq135) {
         db.ref('logs').limitToLast(30).on('value', (snapshot) => {
             let dataArray = [];
             snapshot.forEach((childSnapshot) => {
                 dataArray.push(childSnapshot.val());
             });
 
+            // UPDATE TABEL HISTORY
             if (tableBody) {
                 tableBody.innerHTML = "";
                 let reversedData = [...dataArray].reverse().slice(0, 20); 
                 
                 reversedData.forEach((row, index) => {
                     const tr = document.createElement('tr');
+                    
+                    // Gunakan nilai MQ-135 Indoor sebagai acuan utama ISPU di tabel
                     let valISPU = row.mq135_indoor || 0;
                     const status = getIspu(valISPU);
-                    let waktuStr = row.timestamp ? `Log-${row.timestamp.toString().slice(-4)}` : "Live Data";
+                    let waktuStr = row.timestamp ? `Log-${row.timestamp.toString().slice(-4)}` : "Live";
+
+                    // Format ringkas nilai Outdoor & Indoor
+                    let strOutdoor = `MQ135: ${(row.mq135_outdoor||0).toFixed(1)} | MQ7: ${(row.mq7_outdoor||0).toFixed(1)} | PM2.5: ${(row.pm25_outdoor||0).toFixed(1)} | PM10: ${(row.pm10_outdoor||0).toFixed(1)}`;
+                    let strIndoor = `MQ135: ${(row.mq135_indoor||0).toFixed(1)} | MQ7: ${(row.mq7_indoor||0).toFixed(1)} | PM2.5: ${(row.pm25_indoor||0).toFixed(1)} | PM10: ${(row.pm10_indoor||0).toFixed(1)}`;
 
                     tr.innerHTML = `
                         <td>${index + 1}</td>
                         <td style="color: var(--text-muted); font-family: monospace;">${waktuStr}</td>
-                        <td style="font-weight: bold;">${(row.mq135_indoor || 0).toFixed(1)} PPM</td>
-                        <td>${(row.mq7_indoor || 0).toFixed(1)} PPM</td>
-                        <td>${(row.pm25_indoor || 0).toFixed(1)} µg/m³</td>
-                        <td>${(row.pm10_indoor || 0).toFixed(1)} µg/m³</td>
-                        <td><span style="background:${status.color}; color:#fff; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:bold; letter-spacing:1px;">${status.lbl}</span></td>
+                        <td style="font-size: 11px;">${strOutdoor}</td>
+                        <td style="font-size: 11px; font-weight: bold; color: var(--accent-yellow);">${strIndoor}</td>
+                        <td><span style="background:${status.color}; color:#fff; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">${status.lbl}</span></td>
                     `;
                     tableBody.appendChild(tr);
                 });
             }
 
-            if (histGasChart && histPartChart) {
-                let labels = [];
-                let dMQ135 = [], dMQ7 = [], dPM25 = [], dPM10 = [];
+            // UPDATE 4 GRAFIK KOMPARASI
+            if (c_Mq135 && c_Mq7 && c_Pm25 && c_Pm10) {
+                let lbls = [], out135=[], in135=[], out7=[], in7=[], out25=[], in25=[], out10=[], in10=[];
 
-                dataArray.forEach((row, index) => {
-                    labels.push(row.timestamp ? `Log-${row.timestamp.toString().slice(-4)}` : `Data-${index+1}`);
-                    dMQ135.push(row.mq135_indoor || 0);
-                    dMQ7.push(row.mq7_indoor || 0);
-                    dPM25.push(row.pm25_indoor || 0);
-                    dPM10.push(row.pm10_indoor || 0);
+                dataArray.forEach((row, idx) => {
+                    lbls.push(row.timestamp ? `L-${row.timestamp.toString().slice(-4)}` : `${idx+1}`);
+                    out135.push(row.mq135_outdoor||0); in135.push(row.mq135_indoor||0);
+                    out7.push(row.mq7_outdoor||0);     in7.push(row.mq7_indoor||0);
+                    out25.push(row.pm25_outdoor||0);   in25.push(row.pm25_indoor||0);
+                    out10.push(row.pm10_outdoor||0);   in10.push(row.pm10_indoor||0);
                 });
 
-                histGasChart.data.labels = labels;
-                histGasChart.data.datasets[0].data = dMQ135;
-                histGasChart.data.datasets[1].data = dMQ7;
-                histGasChart.update();
-
-                histPartChart.data.labels = labels;
-                histPartChart.data.datasets[0].data = dPM25;
-                histPartChart.data.datasets[1].data = dPM10;
-                histPartChart.update();
+                c_Mq135.data.labels = lbls; c_Mq135.data.datasets[0].data = out135; c_Mq135.data.datasets[1].data = in135; c_Mq135.update();
+                c_Mq7.data.labels = lbls;   c_Mq7.data.datasets[0].data = out7;     c_Mq7.data.datasets[1].data = in7;     c_Mq7.update();
+                c_Pm25.data.labels = lbls;  c_Pm25.data.datasets[0].data = out25;   c_Pm25.data.datasets[1].data = in25;   c_Pm25.update();
+                c_Pm10.data.labels = lbls;  c_Pm10.data.datasets[0].data = out10;   c_Pm10.data.datasets[1].data = in10;   c_Pm10.update();
             }
         });
     }
 }); // <-- Akhir dari Pelindung DOM
 
-// Fungsi Reset History harus berada di luar pelindung agar bisa diakses tombol
+// Fungsi Reset History
 window.resetHistory = function() {
-    if (confirm("⚠️ PERINGATAN!\n\nApakah kamu yakin ingin menghapus SEMUA riwayat data dari database? Tindakan ini tidak bisa dibatalkan.")) {
+    if (confirm("⚠️ PERINGATAN!\nApakah kamu yakin ingin menghapus SEMUA riwayat data?")) {
         db.ref('logs').remove()
             .then(() => alert("Riwayat berhasil dikosongkan!"))
             .catch((error) => alert("Gagal menghapus: " + error.message));
