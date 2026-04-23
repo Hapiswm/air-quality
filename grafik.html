@@ -23,21 +23,33 @@
     
     <div class="page-wrap">
         <div class="page-header">
-            <h1><i class="fa-solid fa-chart-line"></i> Grafik Riwayat Kualitas Udara</h1>
-            <p>Memantau tren fluktuasi gas dan partikel dari 30 data riwayat terakhir.</p>
+            <h1><i class="fa-solid fa-chart-line"></i> Grafik Komparasi Kualitas Udara</h1>
+            <p>4 Grafik Perbandingan (Outdoor vs Indoor) dari 30 data riwayat terakhir.</p>
         </div>
 
-        <div class="card-grid" style="grid-template-columns: 1fr;">
+        <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
             <div class="glass-card">
-                <div class="section-title"><i class="fa-solid fa-smog"></i> Tren Gas Beracun & Polusi (Indoor)</div>
-                <div class="chart-box" style="height: 350px;">
-                    <canvas id="historyGasChart"></canvas>
+                <div class="section-title">MQ-135 (Outdoor vs Indoor)</div>
+                <div class="chart-box" style="height: 300px;">
+                    <canvas id="chart-mq135"></canvas>
                 </div>
             </div>
-            <div class="glass-card" style="margin-top: 20px;">
-                <div class="section-title"><i class="fa-solid fa-wind"></i> Tren Partikel Debu (Indoor)</div>
-                <div class="chart-box" style="height: 350px;">
-                    <canvas id="historyParticleChart"></canvas>
+            <div class="glass-card">
+                <div class="section-title">MQ-7 (Outdoor vs Indoor)</div>
+                <div class="chart-box" style="height: 300px;">
+                    <canvas id="chart-mq7"></canvas>
+                </div>
+            </div>
+            <div class="glass-card" style="margin-top: 15px;">
+                <div class="section-title">PM 2.5 (Outdoor vs Indoor)</div>
+                <div class="chart-box" style="height: 300px;">
+                    <canvas id="chart-pm25"></canvas>
+                </div>
+            </div>
+            <div class="glass-card" style="margin-top: 15px;">
+                <div class="section-title">PM 10 (Outdoor vs Indoor)</div>
+                <div class="chart-box" style="height: 300px;">
+                    <canvas id="chart-pm10"></canvas>
                 </div>
             </div>
         </div>
