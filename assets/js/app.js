@@ -56,10 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- SETUP DASHBOARD ---
     const ctxGas = document.getElementById("gasChart");
-    let gasChart = ctxGas ? new Chart(ctxGas.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "MQ-135 Outdoor", data: [], borderColor: "#fbbf24", fill: false, tension: 0.4 }, { label: "MQ-7 Outdoor", data: [], borderColor: "#ef4444", fill: false, tension: 0.4 }] }, options: getChartOpts('PPM') }) : null;
+    let gasChart = ctxGas ? new Chart(ctxGas.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "MQ-135 Indoor", data: [], borderColor: "#fbbf24", fill: false, tension: 0.4 }, { label: "MQ-7 Indoor", data: [], borderColor: "#ef4444", fill: false, tension: 0.4 }] }, options: getChartOpts('PPM') }) : null;
 
     const ctxParticle = document.getElementById("particleChart");
-    let particleChart = ctxParticle ? new Chart(ctxParticle.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "PM 2.5 Outdoor", data: [], borderColor: "#3b82f6", fill: false, tension: 0.4 }, { label: "PM 10 Outdoor", data: [], borderColor: "#10b981", fill: false, tension: 0.4 }] }, options: getChartOpts('µg/m³') }) : null;
+    let particleChart = ctxParticle ? new Chart(ctxParticle.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "PM 2.5 Indoor", data: [], borderColor: "#3b82f6", fill: false, tension: 0.4 }, { label: "PM 10 Indoor", data: [], borderColor: "#10b981", fill: false, tension: 0.4 }] }, options: getChartOpts('µg/m³') }) : null;
 
     // --- SETUP SPEEDOMETER ---
     const speedContainer = document.getElementById('speedometer-container');
@@ -114,8 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (gasChart || particleChart) {
             const timeNow = new Date().toLocaleTimeString('id-ID', { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            updateChart(gasChart, data['mq135_outdoor']||0, data['mq7_outdoor']||0, timeNow);
-            updateChart(particleChart, data['pm25_outdoor']||0, data['pm10_outdoor']||0, timeNow);
+            updateChart(gasChart, data['mq135_indoor']||0, data['mq7_indoor']||0, timeNow);
+            updateChart(particleChart, data['pm25_indoor']||0, data['pm10_indoor']||0, timeNow);
         }
 
         if (speedContainer) {
@@ -146,65 +146,113 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- KONEKSI FIREBASE (HISTORY / LOGS) ---
+    // =======================================================
+    // 7. KONEKSI RIWAYAT: TABEL HISTORY & GRAFIK HISTORY
+    // =======================================================
     const tableBody = document.getElementById('table-body');
+    const filterBtn = document.querySelector('.filter-btn');
+    const filterSensor = document.getElementById('filter-sensor');
+    let globalHistoryData = []; // Menyimpan data riwayat sementara
+
+    // Fungsi untuk menggambar ulang tabel sesuai filter
+    function renderTable() {
+        if (!tableBody) return;
+        tableBody.innerHTML = "";
+        
+        // Ambil pilihan dari dropdown (all, mq135, mq7, pm25, pm10)
+        let selectedSensor = filterSensor ? filterSensor.value : "all";
+        
+        let reversedData = [...globalHistoryData].reverse().slice(0, 20); 
+        
+        reversedData.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            
+            let valISPU = 0;
+            let strOutdoor = "";
+            let strIndoor = "";
+            let waktuStr = row.timestamp ? `Log-${row.timestamp.toString().slice(-4)}` : "Live";
+
+            // JIKA MEMILIH "SEMUA SENSOR"
+            if (selectedSensor === "all") {
+                valISPU = Math.max((row.mq135_indoor||0), (row.mq7_indoor||0), (row.pm25_indoor||0), (row.pm10_indoor||0));
+                strOutdoor = `MQ135: ${(row.mq135_outdoor||0).toFixed(1)} | MQ7: ${(row.mq7_outdoor||0).toFixed(1)} | PM2.5: ${(row.pm25_outdoor||0).toFixed(1)} | PM10: ${(row.pm10_outdoor||0).toFixed(1)}`;
+                strIndoor = `MQ135: ${(row.mq135_indoor||0).toFixed(1)} | MQ7: ${(row.mq7_indoor||0).toFixed(1)} | PM2.5: ${(row.pm25_indoor||0).toFixed(1)} | PM10: ${(row.pm10_indoor||0).toFixed(1)}`;
+            } 
+            // JIKA MEMILIH SALAH SATU SENSOR
+            else {
+                let outVal = row[`${selectedSensor}_outdoor`] || 0;
+                let inVal = row[`${selectedSensor}_indoor`] || 0;
+                valISPU = inVal; // ISPU fokus ke sensor yang dipilih
+                
+                let unit = selectedSensor.includes("pm") ? "µg/m³" : "PPM";
+                let namaSensor = selectedSensor.toUpperCase();
+                if (namaSensor === "PM25") namaSensor = "PM 2.5";
+                if (namaSensor === "PM10") namaSensor = "PM 10";
+
+                strOutdoor = `${namaSensor}: ${outVal.toFixed(1)} ${unit}`;
+                strIndoor = `${namaSensor}: ${inVal.toFixed(1)} ${unit}`;
+            }
+
+            const status = getIspu(valISPU);
+
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td style="color: var(--text-muted); font-family: monospace;">${waktuStr}</td>
+                <td style="font-size: 11px;">${strOutdoor}</td>
+                <td style="font-size: 11px; font-weight: bold; color: var(--accent-yellow);">${strIndoor}</td>
+                <td><span style="background:${status.color}; color:#fff; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">${status.lbl}</span></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
     if (tableBody || ctxMq135) {
         db.ref('logs').limitToLast(30).on('value', (snapshot) => {
-            let dataArray = [];
+            globalHistoryData = [];
             snapshot.forEach((childSnapshot) => {
-                dataArray.push(childSnapshot.val());
+                globalHistoryData.push(childSnapshot.val());
             });
 
-            // UPDATE TABEL HISTORY
-            if (tableBody) {
-                tableBody.innerHTML = "";
-                let reversedData = [...dataArray].reverse().slice(0, 20); 
-                
-                reversedData.forEach((row, index) => {
-                    const tr = document.createElement('tr');
-                    
-                    // Gunakan nilai MQ-135 Indoor sebagai acuan utama ISPU di tabel
-                    let valISPU = row.mq135_indoor || 0;
-                    const status = getIspu(valISPU);
-                    let waktuStr = row.timestamp ? `Log-${row.timestamp.toString().slice(-4)}` : "Live";
-
-                    // Format ringkas nilai Outdoor & Indoor
-                    let strOutdoor = `MQ135: ${(row.mq135_outdoor||0).toFixed(1)} | MQ7: ${(row.mq7_outdoor||0).toFixed(1)} | PM2.5: ${(row.pm25_outdoor||0).toFixed(1)} | PM10: ${(row.pm10_outdoor||0).toFixed(1)}`;
-                    let strIndoor = `MQ135: ${(row.mq135_indoor||0).toFixed(1)} | MQ7: ${(row.mq7_indoor||0).toFixed(1)} | PM2.5: ${(row.pm25_indoor||0).toFixed(1)} | PM10: ${(row.pm10_indoor||0).toFixed(1)}`;
-
-                    tr.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td style="color: var(--text-muted); font-family: monospace;">${waktuStr}</td>
-                        <td style="font-size: 11px;">${strOutdoor}</td>
-                        <td style="font-size: 11px; font-weight: bold; color: var(--accent-yellow);">${strIndoor}</td>
-                        <td><span style="background:${status.color}; color:#fff; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">${status.lbl}</span></td>
-                    `;
-                    tableBody.appendChild(tr);
-                });
-            }
+            // Gambar tabelnya
+            renderTable();
 
             // UPDATE 4 GRAFIK KOMPARASI
-            if (c_Mq135 && c_Mq7 && c_Pm25 && c_Pm10) {
-                let lbls = [], out135=[], in135=[], out7=[], in7=[], out25=[], in25=[], out10=[], in10=[];
+            if (ctxMq135) {
+                let c_Mq135 = Chart.getChart("chart-mq135");
+                let c_Mq7 = Chart.getChart("chart-mq7");
+                let c_Pm25 = Chart.getChart("chart-pm25");
+                let c_Pm10 = Chart.getChart("chart-pm10");
 
-                dataArray.forEach((row, idx) => {
-                    lbls.push(row.timestamp ? `L-${row.timestamp.toString().slice(-4)}` : `${idx+1}`);
-                    out135.push(row.mq135_outdoor||0); in135.push(row.mq135_indoor||0);
-                    out7.push(row.mq7_outdoor||0);     in7.push(row.mq7_indoor||0);
-                    out25.push(row.pm25_outdoor||0);   in25.push(row.pm25_indoor||0);
-                    out10.push(row.pm10_outdoor||0);   in10.push(row.pm10_indoor||0);
-                });
+                if(c_Mq135 && c_Mq7 && c_Pm25 && c_Pm10) {
+                    let lbls = [], out135=[], in135=[], out7=[], in7=[], out25=[], in25=[], out10=[], in10=[];
+                    globalHistoryData.forEach((row, idx) => {
+                        lbls.push(row.timestamp ? `L-${row.timestamp.toString().slice(-4)}` : `${idx+1}`);
+                        out135.push(row.mq135_outdoor||0); in135.push(row.mq135_indoor||0);
+                        out7.push(row.mq7_outdoor||0);     in7.push(row.mq7_indoor||0);
+                        out25.push(row.pm25_outdoor||0);   in25.push(row.pm25_indoor||0);
+                        out10.push(row.pm10_outdoor||0);   in10.push(row.pm10_indoor||0);
+                    });
 
-                c_Mq135.data.labels = lbls; c_Mq135.data.datasets[0].data = out135; c_Mq135.data.datasets[1].data = in135; c_Mq135.update();
-                c_Mq7.data.labels = lbls;   c_Mq7.data.datasets[0].data = out7;     c_Mq7.data.datasets[1].data = in7;     c_Mq7.update();
-                c_Pm25.data.labels = lbls;  c_Pm25.data.datasets[0].data = out25;   c_Pm25.data.datasets[1].data = in25;   c_Pm25.update();
-                c_Pm10.data.labels = lbls;  c_Pm10.data.datasets[0].data = out10;   c_Pm10.data.datasets[1].data = in10;   c_Pm10.update();
+                    c_Mq135.data.labels = lbls; c_Mq135.data.datasets[0].data = out135; c_Mq135.data.datasets[1].data = in135; c_Mq135.update();
+                    c_Mq7.data.labels = lbls;   c_Mq7.data.datasets[0].data = out7;     c_Mq7.data.datasets[1].data = in7;     c_Mq7.update();
+                    c_Pm25.data.labels = lbls;  c_Pm25.data.datasets[0].data = out25;   c_Pm25.data.datasets[1].data = in25;   c_Pm25.update();
+                    c_Pm10.data.labels = lbls;  c_Pm10.data.datasets[0].data = out10;   c_Pm10.data.datasets[1].data = in10;   c_Pm10.update();
+                }
             }
         });
+
+        // Jika tombol Filter diklik, gambar ulang tabelnya
+        if (filterBtn) {
+            filterBtn.addEventListener('click', () => {
+                renderTable();
+            });
+        }
     }
 }); // <-- Akhir dari Pelindung DOM
 
-// Fungsi Reset History
+// =======================================================
+// 8. FUNGSI HAPUS HISTORY
+// =======================================================
 window.resetHistory = function() {
     if (confirm("⚠️ PERINGATAN!\nApakah kamu yakin ingin menghapus SEMUA riwayat data?")) {
         db.ref('logs').remove()
