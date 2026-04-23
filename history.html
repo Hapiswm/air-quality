@@ -9,14 +9,17 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        .table-container { overflow-x: auto; margin-top: 20px; }
+        .filter-container { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .filter-box { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 8px 15px; border-radius: 8px; color: var(--text-main); flex: 1; min-width: 150px; }
+        .filter-btn { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .filter-btn:hover { background: #2563eb; }
+        .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; color: var(--text-main); font-size: 14px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid var(--glass-border); text-align: center; }
-        th { background: rgba(0,0,0,0.2); color: var(--accent-yellow); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        th { background: rgba(0,0,0,0.2); color: var(--accent-yellow); text-transform: uppercase; font-weight: 600; }
         tr:hover { background: rgba(255,255,255,0.05); }
-        .btn-reset { background: var(--ispu-tidak-sehat); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-reset { background: var(--ispu-tidak-sehat); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-reset:hover { background: #b91c1c; }
-        .header-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -37,25 +40,34 @@
         </div>
 
         <div class="glass-card">
-            <div class="header-action">
-                <div class="section-title" style="margin-bottom:0;">20 Data Terakhir</div>
-                <button class="btn-reset" onclick="resetHistory()"><i class="fa-solid fa-trash"></i> HAPUS RIWAYAT</button>
+            <div class="filter-container">
+                <select id="filter-sensor" class="filter-box">
+                    <option value="all">Semua Sensor</option>
+                    <option value="mq135">MQ-135</option>
+                    <option value="mq7">MQ-7</option>
+                    <option value="pm25">PM 2.5</option>
+                    <option value="pm10">PM 10</option>
+                </select>
+                <input type="date" id="filter-start" class="filter-box" placeholder="Tanggal Mulai">
+                <input type="date" id="filter-end" class="filter-box" placeholder="Tanggal Akhir">
+                <button class="filter-btn"><i class="fa-solid fa-filter"></i> Filter</button>
+                <div style="flex-grow: 1;"></div>
+                <button class="btn-reset" onclick="resetHistory()"><i class="fa-solid fa-trash"></i> Hapus Riwayat</button>
             </div>
+
             <div class="table-container">
                 <table id="history-table">
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Waktu (Timestamp)</th>
-                            <th>MQ-135 (In)</th>
-                            <th>MQ-7 (In)</th>
-                            <th>PM 2.5 (In)</th>
-                            <th>PM 10 (In)</th>
-                            <th>Status Udara</th>
+                            <th>Waktu Log</th>
+                            <th>Nilai Outdoor (A)</th>
+                            <th>Nilai Indoor (B)</th>
+                            <th>Status ISPU (Indoor)</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
