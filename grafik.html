@@ -22,39 +22,28 @@
     </div>
     
     <div class="page-wrap">
-        <div class="page-header">
-            <h1><i class="fa-solid fa-chart-line"></i> Grafik Komparasi Kualitas Udara</h1>
-            <p>4 Grafik Perbandingan (Outdoor vs Indoor) dari 30 data riwayat terakhir.</p>
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div>
+                <h1><i class="fa-solid fa-chart-line"></i> Grafik Komparasi Udara</h1>
+                <p>Pantau fluktuasi polusi berdasarkan rentang waktu.</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
+                <span style="color: var(--accent-yellow); font-weight: bold; margin-right: 10px;"><i class="fa-solid fa-clock"></i> Rentang Waktu:</span>
+                <select id="chart-time-filter" style="padding: 8px; border-radius: 5px; background: #1e293b; color: white; border: 1px solid #3b82f6; outline: none; cursor: pointer;">
+                    <option value="30">Live (2,5 Menit Terakhir)</option>
+                    <option value="720">History 1 Jam Terakhir</option>
+                    <option value="2160">History 3 Jam Terakhir</option>
+                </select>
+            </div>
         </div>
 
         <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="glass-card">
-                <div class="section-title">MQ-135 (Outdoor vs Indoor)</div>
-                <div class="chart-box" style="height: 300px;">
-                    <canvas id="chart-mq135"></canvas>
-                </div>
-            </div>
-            <div class="glass-card">
-                <div class="section-title">MQ-7 (Outdoor vs Indoor)</div>
-                <div class="chart-box" style="height: 300px;">
-                    <canvas id="chart-mq7"></canvas>
-                </div>
-            </div>
-            <div class="glass-card" style="margin-top: 15px;">
-                <div class="section-title">PM 2.5 (Outdoor vs Indoor)</div>
-                <div class="chart-box" style="height: 300px;">
-                    <canvas id="chart-pm25"></canvas>
-                </div>
-            </div>
-            <div class="glass-card" style="margin-top: 15px;">
-                <div class="section-title">PM 10 (Outdoor vs Indoor)</div>
-                <div class="chart-box" style="height: 300px;">
-                    <canvas id="chart-pm10"></canvas>
-                </div>
-            </div>
+            <div class="glass-card"><div class="section-title">MQ-135 (Outdoor vs Indoor)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-mq135"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">MQ-7 (Outdoor vs Indoor)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-mq7"></canvas></div></div>
+            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 2.5 (Outdoor vs Indoor)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-pm25"></canvas></div></div>
+            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 10 (Outdoor vs Indoor)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-pm10"></canvas></div></div>
         </div>
     </div>
-    
     <script src="assets/js/app.js"></script>
 </body>
 </html>
