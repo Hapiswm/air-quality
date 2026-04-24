@@ -20,6 +20,8 @@
         tr:hover { background: rgba(255,255,255,0.05); }
         .btn-reset { background: var(--ispu-tidak-sehat); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-reset:hover { background: #b91c1c; }
+        .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-excel:hover { background: #059669; }
     </style>
 </head>
 <body>
@@ -48,9 +50,8 @@
                     <option value="pm25">PM 2.5</option>
                     <option value="pm10">PM 10</option>
                 </select>
-                <input type="date" id="filter-start" class="filter-box" placeholder="Tanggal Mulai">
-                <input type="date" id="filter-end" class="filter-box" placeholder="Tanggal Akhir">
                 <button class="filter-btn"><i class="fa-solid fa-filter"></i> Filter</button>
+                <button class="btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
                 <div style="flex-grow: 1;"></div>
                 <button class="btn-reset" onclick="resetHistory()"><i class="fa-solid fa-trash"></i> Hapus Riwayat</button>
             </div>
@@ -66,8 +67,7 @@
                             <th>Status ISPU (Indoor)</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body">
-                        </tbody>
+                    <tbody id="table-body"></tbody>
                 </table>
             </div>
         </div>
