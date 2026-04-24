@@ -9,7 +9,12 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // =======================================================
-// 2. LOGIKA ISPU & DAFTAR SENSOR
+// 2. PENGATURAN LOGIN ADMIN
+// =======================================================
+const ADMIN_PASSWORD = "admin123"; // Ganti password ini sesuai keinginanmu
+
+// =======================================================
+// 3. LOGIKA ISPU & DAFTAR SENSOR
 // =======================================================
 function getIspu(val) {
   if (val <= 50) return { lbl: "BAIK", cls: "baik", color: "#10b981" };
@@ -53,7 +58,44 @@ function updateChart(chart, d1, d2, timeStr) {
 // PELINDUNG DOM (Menunggu HTML selesai dimuat)
 // =======================================================
 document.addEventListener('DOMContentLoaded', () => {
-    
+
+    // --- SETUP TAMPILAN LOGIN ADMIN (Otomatis dibuat oleh JS) ---
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--glass-bg, #1e293b); padding: 30px; border-radius: 15px; width: 320px; text-align: center; color: white; border: 1px solid var(--glass-border); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-content h3 { margin-top: 0; color: var(--accent-yellow); letter-spacing: 1px; }
+        .modal-content input { width: 90%; padding: 12px; margin: 15px 0; border: none; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; outline: none; }
+        .modal-btn { background: #3b82f6; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        .modal-btn:hover { background: #2563eb; }
+        .close-modal { color: #aaa; float: right; font-size: 24px; cursor: pointer; margin-top: -15px; margin-right: -10px; }
+        .close-modal:hover { color: white; }
+    `;
+    document.head.appendChild(style);
+
+    const modalHTML = `
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeLogin()">&times;</span>
+                <h3><i class="fa-solid fa-shield-halved"></i> Login Admin</h3>
+                <input type="password" id="admin-pass" placeholder="Masukkan Password">
+                <button class="modal-btn" onclick="checkLogin()">Masuk</button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    const topbarMenu = document.querySelector('.topbar-menu');
+    if (topbarMenu) {
+        const loginMenu = document.createElement('a');
+        loginMenu.href = "#";
+        loginMenu.id = "menu-login";
+        loginMenu.onclick = (e) => { e.preventDefault(); toggleLogin(); };
+        topbarMenu.appendChild(loginMenu);
+    }
+
+    applyAdminRights(); // Terapkan aturan tombol (sembunyikan tombol hapus jika belum login)
+
     // --- SETUP DASHBOARD ---
     const ctxGas = document.getElementById("gasChart");
     let gasChart = ctxGas ? new Chart(ctxGas.getContext("2d"), { type: "line", data: { labels: [], datasets: [{ label: "MQ-135 Indoor", data: [], borderColor: "#fbbf24", fill: false, tension: 0.4 }, { label: "MQ-7 Indoor", data: [], borderColor: "#ef4444", fill: false, tension: 0.4 }] }, options: getChartOpts('PPM') }) : null;
@@ -146,43 +188,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // =======================================================
-    // 7. KONEKSI RIWAYAT: TABEL HISTORY & GRAFIK HISTORY
-    // =======================================================
+    // --- KONEKSI FIREBASE (HISTORY & FILTER) ---
     const tableBody = document.getElementById('table-body');
     const filterBtn = document.querySelector('.filter-btn');
     const filterSensor = document.getElementById('filter-sensor');
-    let globalHistoryData = []; // Menyimpan data riwayat sementara
+    let globalHistoryData = []; 
 
-    // Fungsi untuk menggambar ulang tabel sesuai filter
     function renderTable() {
         if (!tableBody) return;
         tableBody.innerHTML = "";
         
-        // Ambil pilihan dari dropdown (all, mq135, mq7, pm25, pm10)
         let selectedSensor = filterSensor ? filterSensor.value : "all";
-        
         let reversedData = [...globalHistoryData].reverse().slice(0, 20); 
         
         reversedData.forEach((row, index) => {
             const tr = document.createElement('tr');
-            
-            let valISPU = 0;
-            let strOutdoor = "";
-            let strIndoor = "";
+            let valISPU = 0; let strOutdoor = ""; let strIndoor = "";
             let waktuStr = row.timestamp ? `Log-${row.timestamp.toString().slice(-4)}` : "Live";
 
-            // JIKA MEMILIH "SEMUA SENSOR"
             if (selectedSensor === "all") {
                 valISPU = Math.max((row.mq135_indoor||0), (row.mq7_indoor||0), (row.pm25_indoor||0), (row.pm10_indoor||0));
                 strOutdoor = `MQ135: ${(row.mq135_outdoor||0).toFixed(1)} | MQ7: ${(row.mq7_outdoor||0).toFixed(1)} | PM2.5: ${(row.pm25_outdoor||0).toFixed(1)} | PM10: ${(row.pm10_outdoor||0).toFixed(1)}`;
                 strIndoor = `MQ135: ${(row.mq135_indoor||0).toFixed(1)} | MQ7: ${(row.mq7_indoor||0).toFixed(1)} | PM2.5: ${(row.pm25_indoor||0).toFixed(1)} | PM10: ${(row.pm10_indoor||0).toFixed(1)}`;
-            } 
-            // JIKA MEMILIH SALAH SATU SENSOR
-            else {
+            } else {
                 let outVal = row[`${selectedSensor}_outdoor`] || 0;
                 let inVal = row[`${selectedSensor}_indoor`] || 0;
-                valISPU = inVal; // ISPU fokus ke sensor yang dipilih
+                valISPU = inVal; 
                 
                 let unit = selectedSensor.includes("pm") ? "µg/m³" : "PPM";
                 let namaSensor = selectedSensor.toUpperCase();
@@ -194,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const status = getIspu(valISPU);
-
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td style="color: var(--text-muted); font-family: monospace;">${waktuStr}</td>
@@ -213,15 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 globalHistoryData.push(childSnapshot.val());
             });
 
-            // Gambar tabelnya
             renderTable();
 
-            // UPDATE 4 GRAFIK KOMPARASI
             if (ctxMq135) {
-                let c_Mq135 = Chart.getChart("chart-mq135");
-                let c_Mq7 = Chart.getChart("chart-mq7");
-                let c_Pm25 = Chart.getChart("chart-pm25");
-                let c_Pm10 = Chart.getChart("chart-pm10");
+                let c_Mq135 = Chart.getChart("chart-mq135"); let c_Mq7 = Chart.getChart("chart-mq7");
+                let c_Pm25 = Chart.getChart("chart-pm25"); let c_Pm10 = Chart.getChart("chart-pm10");
 
                 if(c_Mq135 && c_Mq7 && c_Pm25 && c_Pm10) {
                     let lbls = [], out135=[], in135=[], out7=[], in7=[], out25=[], in25=[], out10=[], in10=[];
@@ -241,19 +267,71 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Jika tombol Filter diklik, gambar ulang tabelnya
         if (filterBtn) {
-            filterBtn.addEventListener('click', () => {
-                renderTable();
-            });
+            filterBtn.addEventListener('click', () => { renderTable(); });
         }
     }
 }); // <-- Akhir dari Pelindung DOM
 
 // =======================================================
-// 8. FUNGSI HAPUS HISTORY
+// 4. FUNGSI KHUSUS LOGIN & HAPUS HISTORY
 // =======================================================
+
+// Tampilkan / Sembunyikan Modal Login
+window.toggleLogin = function() {
+    if (sessionStorage.getItem('isAdmin') === 'true') {
+        sessionStorage.removeItem('isAdmin');
+        applyAdminRights();
+        alert("Berhasil Logout! Mode Publik aktif.");
+    } else {
+        document.getElementById('login-modal').style.display = 'flex';
+    }
+}
+
+// Tutup Modal
+window.closeLogin = function() {
+    document.getElementById('login-modal').style.display = 'none';
+    document.getElementById('admin-pass').value = ""; // Kosongkan input
+}
+
+// Cek Password
+window.checkLogin = function() {
+    const pass = document.getElementById('admin-pass').value;
+    if (pass === ADMIN_PASSWORD) {
+        sessionStorage.setItem('isAdmin', 'true');
+        alert("Akses Admin Terbuka!");
+        closeLogin();
+        applyAdminRights();
+    } else {
+        alert("❌ Password Salah!");
+    }
+}
+
+// Terapkan Aturan Tampilan Berdasarkan Status Login
+window.applyAdminRights = function() {
+    const isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+    const btnReset = document.querySelector('.btn-reset');
+    const menuLogin = document.getElementById('menu-login');
+
+    // Ubah Teks Menu
+    if (menuLogin) {
+        menuLogin.innerHTML = isAdmin ? '<i class="fa-solid fa-unlock"></i> Logout' : '<i class="fa-solid fa-lock"></i> Login Admin';
+        menuLogin.style.color = isAdmin ? "#fbbf24" : ""; // Warna emas jika admin
+    }
+
+    // Sembunyikan/Tampilkan Tombol Hapus Riwayat
+    if (btnReset) {
+        btnReset.style.display = isAdmin ? 'flex' : 'none';
+    }
+}
+
 window.resetHistory = function() {
+    // Keamanan Ganda: Cek ulang apakah benar-benar admin sebelum menghapus
+    if (sessionStorage.getItem('isAdmin') !== 'true') {
+        alert("Akses Ditolak! Silakan login sebagai Admin.");
+        return;
+    }
+    
     if (confirm("⚠️ PERINGATAN!\nApakah kamu yakin ingin menghapus SEMUA riwayat data?")) {
         db.ref('logs').remove()
             .then(() => alert("Riwayat berhasil dikosongkan!"))
