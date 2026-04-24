@@ -32,59 +32,29 @@
             </div>
         </div>
 
-        <div class="card-grid">
-            <div class="glass-card sensor-card" id="card-mq135_indoor">
-                <div class="sensor-title">MQ-135 (Indoor)</div>
-                <div class="sensor-val"><span id="val-mq135_indoor">0.0</span> <span class="sensor-unit">PPM</span></div>
-                <div class="sensor-stat" id="stat-mq135_indoor">MENUNGGU</div>
-            </div>
-            <div class="glass-card sensor-card" id="card-mq7_indoor">
-                <div class="sensor-title">MQ-7 (Indoor)</div>
-                <div class="sensor-val"><span id="val-mq7_indoor">0.0</span> <span class="sensor-unit">PPM</span></div>
-                <div class="sensor-stat" id="stat-mq7_indoor">MENUNGGU</div>
-            </div>
-            <div class="glass-card sensor-card" id="card-pm25_indoor">
-                <div class="sensor-title">PM 2.5 (Indoor)</div>
-                <div class="sensor-val"><span id="val-pm25_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div>
-                <div class="sensor-stat" id="stat-pm25_indoor">MENUNGGU</div>
-            </div>
-            <div class="glass-card sensor-card" id="card-pm10_indoor">
-                <div class="sensor-title">PM 10 (Indoor)</div>
-                <div class="sensor-val"><span id="val-pm10_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div>
-                <div class="sensor-stat" id="stat-pm10_indoor">MENUNGGU</div>
-            </div>
-
-            <div class="glass-card sensor-card" id="card-mq135_outdoor">
-                <div class="sensor-title">MQ-135 (Outdoor)</div>
-                <div class="sensor-val"><span id="val-mq135_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div>
-                <div class="sensor-stat" id="stat-mq135_outdoor">MENUNGGU</div>
-            </div>
-            <div class="glass-card sensor-card" id="card-mq7_outdoor">
-                <div class="sensor-title">MQ-7 (Outdoor)</div>
-                <div class="sensor-val"><span id="val-mq7_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div>
-                <div class="sensor-stat" id="stat-mq7_outdoor">MENUNGGU</div>
-            </div>
-            <div class="glass-card sensor-card" id="card-pm25_outdoor">
-                <div class="sensor-title">PM 2.5 (Outdoor)</div>
-                <div class="sensor-val"><span id="val-pm25_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div>
-                <div class="sensor-stat" id="stat-pm25_outdoor">MENUNGGU</div>
-            </div>
-            <div class="glass-card sensor-card" id="card-pm10_outdoor">
-                <div class="sensor-title">PM 10 (Outdoor)</div>
-                <div class="sensor-val"><span id="val-pm10_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div>
-                <div class="sensor-stat" id="stat-pm10_outdoor">MENUNGGU</div>
+        <div id="admin-panel" class="glass-card" style="display: none; border: 1px solid var(--accent-yellow); margin-bottom: 20px;">
+            <div class="section-title" style="color: var(--accent-yellow);"><i class="fa-solid fa-gamepad"></i> Panel Kontrol Remote (Admin)</div>
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <button onclick="setAlat('START')" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-play"></i> START ALAT</button>
+                <button onclick="setAlat('STOP')" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-stop"></i> STOP ALAT</button>
+                <span id="status-alat" style="font-weight: bold; color: white; background: rgba(0,0,0,0.2); padding: 8px 15px; border-radius: 8px;"><i class="fa-solid fa-satellite-dish"></i> Status Sistem: Menghubungkan...</span>
             </div>
         </div>
 
+        <div class="card-grid">
+            <div class="glass-card sensor-card" id="card-mq135_indoor"><div class="sensor-title">MQ-135 (Indoor)</div><div class="sensor-val"><span id="val-mq135_indoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135_indoor">MENUNGGU</div></div>
+            <div class="glass-card sensor-card" id="card-mq7_indoor"><div class="sensor-title">MQ-7 (Indoor)</div><div class="sensor-val"><span id="val-mq7_indoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7_indoor">MENUNGGU</div></div>
+            <div class="glass-card sensor-card" id="card-pm25_indoor"><div class="sensor-title">PM 2.5 (Indoor)</div><div class="sensor-val"><span id="val-pm25_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25_indoor">MENUNGGU</div></div>
+            <div class="glass-card sensor-card" id="card-pm10_indoor"><div class="sensor-title">PM 10 (Indoor)</div><div class="sensor-val"><span id="val-pm10_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10_indoor">MENUNGGU</div></div>
+            <div class="glass-card sensor-card" id="card-mq135_outdoor"><div class="sensor-title">MQ-135 (Outdoor)</div><div class="sensor-val"><span id="val-mq135_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135_outdoor">MENUNGGU</div></div>
+            <div class="glass-card sensor-card" id="card-mq7_outdoor"><div class="sensor-title">MQ-7 (Outdoor)</div><div class="sensor-val"><span id="val-mq7_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7_outdoor">MENUNGGU</div></div>
+            <div class="glass-card sensor-card" id="card-pm25_outdoor"><div class="sensor-title">PM 2.5 (Outdoor)</div><div class="sensor-val"><span id="val-pm25_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25_outdoor">MENUNGGU</div></div>
+            <div class="glass-card sensor-card" id="card-pm10_outdoor"><div class="sensor-title">PM 10 (Outdoor)</div><div class="sensor-val"><span id="val-pm10_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10_outdoor">MENUNGGU</div></div>
+        </div>
+
         <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
-            <div class="glass-card">
-                <div class="section-title">Live: Gas Beracun (Outdoor)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div>
-            </div>
-            <div class="glass-card">
-                <div class="section-title">Live: Partikel Debu (Outdoor)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div>
-            </div>
+            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Indoor)</div><div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Indoor)</div><div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div></div>
         </div>
     </div>
     
