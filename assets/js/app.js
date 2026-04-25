@@ -14,6 +14,10 @@ let gasChart = null, particleChart = null;
 let compMq135 = null, compMq7 = null, compPm25 = null, compPm10 = null; 
 let maxDataPoints = 15; 
 
+// Variabel Speedometer
+let gMq135In, gMq7In, gPm25In, gPm10In;
+let gMq135Out, gMq7Out, gPm25Out, gPm10Out;
+
 // =========================================================================
 // 2. FITUR LOGIN & INISIALISASI HALAMAN
 // =========================================================================
@@ -30,6 +34,7 @@ window.onload = () => {
         if(document.getElementById('gasChart')) initDashboardCharts();
         if(document.getElementById('chart-mq135')) initComparisonCharts();
         if(document.getElementById('history-table-body')) initHistoryTable();
+        if(document.getElementById('g-mq135-in')) initGauges(); 
     }, 300); 
 };
 
@@ -60,21 +65,53 @@ db.ref('/kontrol/sistem').on('value', (snapshot) => {
     let status = snapshot.val();
     let statusSistemEl = document.getElementById('status-sistem');
     if(statusSistemEl) {
-        if(status === 'START') {
-            statusSistemEl.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Status: AKTIF (START)`;
-            statusSistemEl.style.background = "rgba(16, 185, 129, 0.2)"; 
-            statusSistemEl.style.color = "#10b981";
-        } else {
-            statusSistemEl.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Status: MATI (STOP)`;
-            statusSistemEl.style.background = "rgba(239, 68, 68, 0.2)"; 
-            statusSistemEl.style.color = "#ef4444";
-        }
+        statusSistemEl.innerHTML = status === 'START' ? `<i class="fa-solid fa-satellite-dish"></i> Status: AKTIF (START)` : `<i class="fa-solid fa-satellite-dish"></i> Status: MATI (STOP)`;
+        statusSistemEl.style.background = status === 'START' ? "rgba(16, 185, 129, 0.2)" : "rgba(239, 68, 68, 0.2)"; 
+        statusSistemEl.style.color = status === 'START' ? "#10b981" : "#ef4444";
     }
 });
 
 // =========================================================================
-// 3. INISIALISASI GRAFIK
+// 3. INISIALISASI GRAFIK 
 // =========================================================================
+const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+function getRealTimeFromFirebaseKey(id) {
+    let time = 0;
+    for (let i = 0; i < 8; i++) time = time * 64 + PUSH_CHARS.indexOf(id.charAt(i));
+    return new Date(time);
+}
+
+function fetchHistoricalDataForCharts(chartsObj, isDashboard) {
+    db.ref('/logs').limitToLast(maxDataPoints).once('value').then(snapshot => {
+        snapshot.forEach(child => {
+            let d = child.val();
+            let timeStr = new Date(getRealTimeFromFirebaseKey(child.key)).toLocaleTimeString('id-ID', { hour12: false });
+            
+            if (isDashboard) {
+                chartsObj.gas.data.labels.push(timeStr);
+                chartsObj.gas.data.datasets[0].data.push(d.mq135_indoor || 0);
+                chartsObj.gas.data.datasets[1].data.push(d.mq7_indoor || 0);
+                
+                chartsObj.part.data.labels.push(timeStr);
+                chartsObj.part.data.datasets[0].data.push(d.pm25_indoor || 0);
+                chartsObj.part.data.datasets[1].data.push(d.pm10_indoor || 0);
+            } else {
+                const pushData = (ch, vIn, vOut) => {
+                    ch.data.labels.push(timeStr);
+                    ch.data.datasets[0].data.push(vIn || 0);
+                    ch.data.datasets[1].data.push(vOut || 0);
+                };
+                pushData(chartsObj.m135, d.mq135_indoor, d.mq135_outdoor);
+                pushData(chartsObj.m7, d.mq7_indoor, d.mq7_outdoor);
+                pushData(chartsObj.p25, d.pm25_indoor, d.pm25_outdoor);
+                pushData(chartsObj.p10, d.pm10_indoor, d.pm10_outdoor);
+            }
+        });
+        if(isDashboard) { chartsObj.gas.update(); chartsObj.part.update(); } 
+        else { chartsObj.m135.update(); chartsObj.m7.update(); chartsObj.p25.update(); chartsObj.p10.update(); }
+    });
+}
+
 function initDashboardCharts() {
     if (typeof Chart === 'undefined') return;
     Chart.defaults.color = '#cbd5e1';
@@ -92,6 +129,8 @@ function initDashboardCharts() {
             { label: 'PM 10', borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', data: [], fill: true, tension: 0.4 }
         ]}, options: { responsive: true, maintainAspectRatio: false }
     });
+
+    fetchHistoricalDataForCharts({gas: gasChart, part: particleChart}, true);
 }
 
 function initComparisonCharts() {
@@ -113,44 +152,72 @@ function initComparisonCharts() {
     compPm25 = createCompChart('chart-pm25');
     compPm10 = createCompChart('chart-pm10');
     
+    fetchHistoricalDataForCharts({m135: compMq135, m7: compMq7, p25: compPm25, p10: compPm10}, false);
+
     let filterEl = document.getElementById('chart-time-filter');
     if(filterEl) {
         filterEl.addEventListener('change', (e) => {
             maxDataPoints = parseInt(e.target.value);
-            alert("Rentang waktu diperbarui.");
+            [compMq135, compMq7, compPm25, compPm10].forEach(ch => { ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.data.datasets[1].data=[]; });
+            fetchHistoricalDataForCharts({m135: compMq135, m7: compMq7, p25: compPm25, p10: compPm10}, false);
         });
     }
 }
 
 // =========================================================================
-// 4. UPDATE DATA DASHBOARD & WARNA KOTAK KARTU (SMART UI)
+// 4. INISIALISASI SPEEDOMETER (WARNA ISPU LHK 2020)
 // =========================================================================
-function hitungStatusDebu(val) { return val <= 50 ? "BAIK" : val <= 150 ? "SEDANG" : "BERBAHAYA"; }
-function hitungStatusGas(ppm) { return ppm <= 100 ? "BAIK" : ppm <= 250 ? "SEDANG" : "BERBAHAYA"; }
+function initGauges() {
+    if (typeof JustGage === 'undefined') return;
 
-// Fungsi sakti untuk mewarnai tulisan dan garis atas kotak sekaligus
-function updateSensorCard(valId, statId, cardId, val, type) {
+    let fontColor = "#cbd5e1";
+    // 5 Sektor Warna Sesuai Standar ISPU
+    let ispuSectors = [
+        {color : "#10b981", lo : 0, hi : 50},    // Hijau (BAIK)
+        {color : "#3b82f6", lo : 51, hi : 100},  // Biru (SEDANG)
+        {color : "#f59e0b", lo : 101, hi : 199}, // Kuning (TIDAK SEHAT)
+        {color : "#ef4444", lo : 200, hi : 299}, // Merah (SANGAT TIDAK SEHAT)
+        {color : "#4b5563", lo : 300, hi : 1000} // Hitam/Abu Gelap (BERBAHAYA)
+    ];
+
+    gMq135In = new JustGage({ id: "g-mq135-in", value: 0, min: 0, max: 500, title: "MQ-135", label: "PPM", titleFontColor: fontColor, valueFontColor: fontColor, customSectors: ispuSectors });
+    gMq7In = new JustGage({ id: "g-mq7-in", value: 0, min: 0, max: 500, title: "MQ-7", label: "PPM", titleFontColor: fontColor, valueFontColor: fontColor, customSectors: ispuSectors });
+    gPm25In = new JustGage({ id: "g-pm25-in", value: 0, min: 0, max: 500, title: "PM 2.5", label: "µg/m³", titleFontColor: fontColor, valueFontColor: fontColor, customSectors: ispuSectors });
+    gPm10In = new JustGage({ id: "g-pm10-in", value: 0, min: 0, max: 500, title: "PM 10", label: "µg/m³", titleFontColor: fontColor, valueFontColor: fontColor, customSectors: ispuSectors });
+
+    gMq135Out = new JustGage({ id: "g-mq135-out", value: 0, min: 0, max: 500, title: "MQ-135", label: "PPM", titleFontColor: fontColor, valueFontColor: fontColor, customSectors: ispuSectors });
+    gMq7Out = new JustGage({ id: "g-mq7-out", value: 0, min: 0, max: 500, title: "MQ-7", label: "PPM", titleFontColor: fontColor, valueFontColor: fontColor, customSectors: ispuSectors });
+    gPm25Out = new JustGage({ id: "g-pm25-out", value: 0, min: 0, max: 500, title: "PM 2.5", label: "µg/m³", titleFontColor: fontColor, valueFontColor: fontColor, customSectors: ispuSectors });
+    gPm10Out = new JustGage({ id: "g-pm10-out", value: 0, min: 0, max: 500, title: "PM 10", label: "µg/m³", titleFontColor: fontColor, valueFontColor: fontColor, customSectors: ispuSectors });
+}
+
+// =========================================================================
+// 5. LOGIKA ISPU & UPDATE DASHBOARD
+// =========================================================================
+function getISPUStatus(val) {
+    if (val <= 50) return { text: "BAIK", color: "#10b981" }; // Hijau
+    if (val <= 100) return { text: "SEDANG", color: "#3b82f6" }; // Biru
+    if (val <= 199) return { text: "TIDAK SEHAT", color: "#f59e0b" }; // Kuning
+    if (val <= 299) return { text: "SANGAT TIDAK SEHAT", color: "#ef4444" }; // Merah
+    return { text: "BERBAHAYA", color: "#4b5563" }; // Hitam / Abu Gelap
+}
+
+function updateSensorCard(valId, statId, cardId, val) {
     let elVal = document.getElementById(valId);
     let elStat = document.getElementById(statId);
     let elCard = document.getElementById(cardId);
     
     if(elVal) elVal.innerText = (typeof val === 'number' && val % 1 !== 0) ? val.toFixed(2) : val;
     
-    let status = (type === 'debu') ? hitungStatusDebu(val) : hitungStatusGas(val);
-    let warna = "#10b981"; // Default Hijau (BAIK)
+    let ispu = getISPUStatus(val);
     
-    if(status === "SEDANG") warna = "#f59e0b"; // Kuning
-    else if(status === "BERBAHAYA") warna = "#ef4444"; // Merah
-    
-    if(elStat) {
-        elStat.innerText = status;
-        elStat.style.color = warna;
+    if(elStat) { 
+        elStat.innerText = ispu.text; 
+        elStat.style.color = ispu.color; 
     }
-    
-    if(elCard) {
-        elCard.style.borderTop = `4px solid ${warna}`;
-        // Opsional: Tambahkan sedikit cahaya (glow) sesuai warna agar makin cantik
-        elCard.style.boxShadow = `0 4px 15px ${warna}22`; 
+    if(elCard) { 
+        elCard.style.borderTop = `4px solid ${ispu.color}`; 
+        elCard.style.boxShadow = `0 4px 15px ${ispu.color}33`; 
     }
 }
 
@@ -159,25 +226,30 @@ db.ref('/sensorData').on('value', (snapshot) => {
     if(data) {
         let connEl = document.getElementById('conn-status');
         let statText = document.getElementById('status-text');
-        if(connEl && statText) {
-            connEl.className = 'status-badge online';
-            statText.innerText = 'TERHUBUNG (LIVE)';
+        if(connEl && statText) { connEl.className = 'status-badge online'; statText.innerText = 'TERHUBUNG (LIVE)'; }
+
+        // Update Kartu Dashboard
+        updateSensorCard('val-mq135_indoor', 'stat-mq135_indoor', 'card-mq135_indoor', data.mq135_indoor);
+        updateSensorCard('val-mq7_indoor', 'stat-mq7_indoor', 'card-mq7_indoor', data.mq7_indoor);
+        updateSensorCard('val-pm25_indoor', 'stat-pm25_indoor', 'card-pm25_indoor', data.pm25_indoor);
+        updateSensorCard('val-pm10_indoor', 'stat-pm10_indoor', 'card-pm10_indoor', data.pm10_indoor);
+        
+        updateSensorCard('val-mq135_outdoor', 'stat-mq135_outdoor', 'card-mq135_outdoor', data.mq135_outdoor);
+        updateSensorCard('val-mq7_outdoor', 'stat-mq7_outdoor', 'card-mq7_outdoor', data.mq7_outdoor);
+        updateSensorCard('val-pm25_outdoor', 'stat-pm25_outdoor', 'card-pm25_outdoor', data.pm25_outdoor);
+        updateSensorCard('val-pm10_outdoor', 'stat-pm10_outdoor', 'card-pm10_outdoor', data.pm10_outdoor);
+
+        // Update Jarum Speedometer
+        if(gMq135In) {
+            gMq135In.refresh(data.mq135_indoor); gMq7In.refresh(data.mq7_indoor);
+            gPm25In.refresh(data.pm25_indoor); gPm10In.refresh(data.pm10_indoor);
+            gMq135Out.refresh(data.mq135_outdoor); gMq7Out.refresh(data.mq7_outdoor);
+            gPm25Out.refresh(data.pm25_outdoor); gPm10Out.refresh(data.pm10_outdoor);
         }
-
-        // --- UPDATE DASHBOARD DENGAN KARTU BERWARNA ---
-        updateSensorCard('val-mq135_indoor', 'stat-mq135_indoor', 'card-mq135_indoor', data.mq135_indoor, 'gas');
-        updateSensorCard('val-mq7_indoor', 'stat-mq7_indoor', 'card-mq7_indoor', data.mq7_indoor, 'gas');
-        updateSensorCard('val-pm25_indoor', 'stat-pm25_indoor', 'card-pm25_indoor', data.pm25_indoor, 'debu');
-        updateSensorCard('val-pm10_indoor', 'stat-pm10_indoor', 'card-pm10_indoor', data.pm10_indoor, 'debu');
-
-        updateSensorCard('val-mq135_outdoor', 'stat-mq135_outdoor', 'card-mq135_outdoor', data.mq135_outdoor, 'gas');
-        updateSensorCard('val-mq7_outdoor', 'stat-mq7_outdoor', 'card-mq7_outdoor', data.mq7_outdoor, 'gas');
-        updateSensorCard('val-pm25_outdoor', 'stat-pm25_outdoor', 'card-pm25_outdoor', data.pm25_outdoor, 'debu');
-        updateSensorCard('val-pm10_outdoor', 'stat-pm10_outdoor', 'card-pm10_outdoor', data.pm10_outdoor, 'debu');
 
         let now = new Date().toLocaleTimeString('id-ID', { hour12: false });
 
-        // --- UPDATE GRAFIK DASHBOARD ---
+        // Update Grafik Live
         if(gasChart !== null && particleChart !== null) {
             gasChart.data.labels.push(now); gasChart.data.datasets[0].data.push(data.mq135_indoor || 0); gasChart.data.datasets[1].data.push(data.mq7_indoor || 0);
             particleChart.data.labels.push(now); particleChart.data.datasets[0].data.push(data.pm25_indoor || 0); particleChart.data.datasets[1].data.push(data.pm10_indoor || 0);
@@ -187,7 +259,6 @@ db.ref('/sensorData').on('value', (snapshot) => {
             gasChart.update('none'); particleChart.update('none');
         }
 
-        // --- UPDATE GRAFIK KOMPARASI ---
         if(compMq135 !== null) {
             const pushComp = (chart, valIn, valOut) => {
                 chart.data.labels.push(now);
@@ -204,141 +275,50 @@ db.ref('/sensorData').on('value', (snapshot) => {
 });
 
 // =========================================================================
-// 5. TABEL PRATINJAU HISTORY
+// 6. TABEL & EXCEL HISTORY
 // =========================================================================
+function formatTanggalWaktu(date) {
+    let d = date.getDate().toString().padStart(2, '0'); let m = (date.getMonth() + 1).toString().padStart(2, '0');
+    let y = date.getFullYear(); let jam = date.getHours().toString().padStart(2, '0'); let mnt = date.getMinutes().toString().padStart(2, '0');
+    return `${d}/${m}/${y} ${jam}:${mnt}`;
+}
 function initHistoryTable() {
     let tbody = document.getElementById('history-table-body');
     if (!tbody) return; 
-
     db.ref('/logs').limitToLast(10).on('value', (snapshot) => {
         tbody.innerHTML = '';
-        if (!snapshot.exists()) {
-            tbody.innerHTML = '<tr><td colspan="9">Belum ada data history yang tersimpan.</td></tr>'; 
-            return;
-        }
-
+        if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="9">Belum ada data.</td></tr>'; return; }
         let rowsHTML = [];
         snapshot.forEach(child => {
-            let r = child.val();
-            let date = formatTanggalWaktu(getRealTimeFromFirebaseKey(child.key));
-            rowsHTML.unshift(`
-                <tr>
-                    <td>${date}</td>
-                    <td>${parseFloat(r.mq135_indoor||0).toFixed(1)}</td>
-                    <td>${parseFloat(r.mq7_indoor||0).toFixed(1)}</td>
-                    <td>${r.pm25_indoor||0}</td>
-                    <td>${r.pm10_indoor||0}</td>
-                    <td>${parseFloat(r.mq135_outdoor||0).toFixed(1)}</td>
-                    <td>${parseFloat(r.mq7_outdoor||0).toFixed(1)}</td>
-                    <td>${r.pm25_outdoor||0}</td>
-                    <td>${r.pm10_outdoor||0}</td>
-                </tr>
-            `);
+            let r = child.val(); let date = formatTanggalWaktu(getRealTimeFromFirebaseKey(child.key));
+            rowsHTML.unshift(`<tr><td>${date}</td><td>${parseFloat(r.mq135_indoor||0).toFixed(1)}</td><td>${parseFloat(r.mq7_indoor||0).toFixed(1)}</td><td>${r.pm25_indoor||0}</td><td>${r.pm10_indoor||0}</td><td>${parseFloat(r.mq135_outdoor||0).toFixed(1)}</td><td>${parseFloat(r.mq7_outdoor||0).toFixed(1)}</td><td>${r.pm25_outdoor||0}</td><td>${r.pm10_outdoor||0}</td></tr>`);
         });
         tbody.innerHTML = rowsHTML.join('');
     });
 }
-
-// =========================================================================
-// 6. EXPORT EXCEL
-// =========================================================================
-const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
-function getRealTimeFromFirebaseKey(id) {
-    let time = 0;
-    for (let i = 0; i < 8; i++) { time = time * 64 + PUSH_CHARS.indexOf(id.charAt(i)); }
-    return new Date(time);
-}
-
-function formatTanggalWaktu(date) {
-    let d = date.getDate().toString().padStart(2, '0');
-    let m = (date.getMonth() + 1).toString().padStart(2, '0');
-    let y = date.getFullYear();
-    let jam = date.getHours().toString().padStart(2, '0');
-    let mnt = date.getMinutes().toString().padStart(2, '0');
-    return `${d}/${m}/${y} ${jam}:${mnt}`;
-}
-
 function downloadExcel(mode) {
-    alert("Sistem sedang merakit data Excel... Silakan tunggu sebentar.");
-    
+    alert("Sistem merakit data Excel...");
     db.ref('/logs').limitToLast(10000).once('value').then(snapshot => {
         let dataMentah = [];
-        snapshot.forEach(childSnapshot => {
-            let key = childSnapshot.key;
-            let row = childSnapshot.val();
-            row.waktuAsli = getRealTimeFromFirebaseKey(key); 
-            dataMentah.push(row);
-        });
-
-        if(dataMentah.length === 0) { alert("Belum ada data history."); return; }
-
+        snapshot.forEach(child => { let r = child.val(); r.waktuAsli = getRealTimeFromFirebaseKey(child.key); dataMentah.push(r); });
+        if(dataMentah.length === 0) return;
         let dataExcel = [];
-
         if (mode === 'raw') {
-            dataExcel = dataMentah.map(r => ({
-                "Waktu (WIB)": formatTanggalWaktu(r.waktuAsli),
-                "Indoor MQ-135 (PPM)": +(parseFloat(r.mq135_indoor || 0).toFixed(2)),
-                "Indoor MQ-7 (PPM)": +(parseFloat(r.mq7_indoor || 0).toFixed(2)),
-                "Indoor PM2.5 (ug/m3)": +(r.pm25_indoor || 0),
-                "Indoor PM10 (ug/m3)": +(r.pm10_indoor || 0),
-                "Outdoor MQ-135 (PPM)": +(parseFloat(r.mq135_outdoor || 0).toFixed(2)),
-                "Outdoor MQ-7 (PPM)": +(parseFloat(r.mq7_outdoor || 0).toFixed(2)),
-                "Outdoor PM2.5 (ug/m3)": +(r.pm25_outdoor || 0),
-                "Outdoor PM10 (ug/m3)": +(r.pm10_outdoor || 0)
-            }));
+            dataExcel = dataMentah.map(r => ({ "Waktu (WIB)": formatTanggalWaktu(r.waktuAsli), "In MQ135": +(parseFloat(r.mq135_indoor || 0).toFixed(2)), "In MQ7": +(parseFloat(r.mq7_indoor || 0).toFixed(2)), "In PM2.5": +(r.pm25_indoor || 0), "In PM10": +(r.pm10_indoor || 0), "Out MQ135": +(parseFloat(r.mq135_outdoor || 0).toFixed(2)), "Out MQ7": +(parseFloat(r.mq7_outdoor || 0).toFixed(2)), "Out PM2.5": +(r.pm25_outdoor || 0), "Out PM10": +(r.pm10_outdoor || 0) }));
         } else {
-            let intervalMs;
-            if (mode === '15min') intervalMs = 15 * 60 * 1000;
-            else if (mode === '1hour') intervalMs = 60 * 60 * 1000;
-            else if (mode === '2hour') intervalMs = 2 * 60 * 60 * 1000;
-
+            let intervalMs = mode === '15min' ? 15*60*1000 : mode === '1hour' ? 60*60*1000 : 2*60*60*1000;
             let grupWaktu = {};
-
             dataMentah.forEach(r => {
-                let blokWaktu = new Date(Math.floor(r.waktuAsli.getTime() / intervalMs) * intervalMs);
-                let labelWaktu = formatTanggalWaktu(blokWaktu);
-
-                if (!grupWaktu[labelWaktu]) {
-                    grupWaktu[labelWaktu] = { count: 0, mq135_in: 0, mq7_in: 0, pm25_in: 0, pm10_in: 0, mq135_out: 0, mq7_out: 0, pm25_out: 0, pm10_out: 0 };
-                }
-
-                grupWaktu[labelWaktu].count++;
-                grupWaktu[labelWaktu].mq135_in += parseFloat(r.mq135_indoor || 0);
-                grupWaktu[labelWaktu].mq7_in += parseFloat(r.mq7_indoor || 0);
-                grupWaktu[labelWaktu].pm25_in += parseFloat(r.pm25_indoor || 0);
-                grupWaktu[labelWaktu].pm10_in += parseFloat(r.pm10_indoor || 0);
-                grupWaktu[labelWaktu].mq135_out += parseFloat(r.mq135_outdoor || 0);
-                grupWaktu[labelWaktu].mq7_out += parseFloat(r.mq7_outdoor || 0);
-                grupWaktu[labelWaktu].pm25_out += parseFloat(r.pm25_outdoor || 0);
-                grupWaktu[labelWaktu].pm10_out += parseFloat(r.pm10_outdoor || 0);
+                let labelWaktu = formatTanggalWaktu(new Date(Math.floor(r.waktuAsli.getTime() / intervalMs) * intervalMs));
+                if (!grupWaktu[labelWaktu]) grupWaktu[labelWaktu] = { c: 0, m135i: 0, m7i: 0, p25i: 0, p10i: 0, m135o: 0, m7o: 0, p25o: 0, p10o: 0 };
+                grupWaktu[labelWaktu].c++; grupWaktu[labelWaktu].m135i += parseFloat(r.mq135_indoor || 0); grupWaktu[labelWaktu].m7i += parseFloat(r.mq7_indoor || 0); grupWaktu[labelWaktu].p25i += parseFloat(r.pm25_indoor || 0); grupWaktu[labelWaktu].p10i += parseFloat(r.pm10_indoor || 0); grupWaktu[labelWaktu].m135o += parseFloat(r.mq135_outdoor || 0); grupWaktu[labelWaktu].m7o += parseFloat(r.mq7_outdoor || 0); grupWaktu[labelWaktu].p25o += parseFloat(r.pm25_outdoor || 0); grupWaktu[labelWaktu].p10o += parseFloat(r.pm10_outdoor || 0);
             });
-
-            for (let waktu in grupWaktu) {
-                let g = grupWaktu[waktu]; let c = g.count; 
-                dataExcel.push({
-                    "Waktu Rentang (WIB)": waktu,
-                    "Total Sampel Data": c,
-                    "Rata-rata Indoor MQ-135": +(g.mq135_in / c).toFixed(2),
-                    "Rata-rata Indoor MQ-7": +(g.mq7_in / c).toFixed(2),
-                    "Rata-rata Indoor PM2.5": +(g.pm25_in / c).toFixed(1),
-                    "Rata-rata Indoor PM10": +(g.pm10_in / c).toFixed(1),
-                    "Rata-rata Outdoor MQ-135": +(g.mq135_out / c).toFixed(2),
-                    "Rata-rata Outdoor MQ-7": +(g.mq7_out / c).toFixed(2),
-                    "Rata-rata Outdoor PM2.5": +(g.pm25_out / c).toFixed(1),
-                    "Rata-rata Outdoor PM10": +(g.pm10_out / c).toFixed(1)
-                });
+            for (let w in grupWaktu) {
+                let g = grupWaktu[w]; let c = g.c; 
+                dataExcel.push({ "Waktu": w, "Sampel": c, "Avg In MQ135": +(g.m135i/c).toFixed(2), "Avg In MQ7": +(g.m7i/c).toFixed(2), "Avg In PM2.5": +(g.p25i/c).toFixed(1), "Avg In PM10": +(g.p10i/c).toFixed(1), "Avg Out MQ135": +(g.m135o/c).toFixed(2), "Avg Out MQ7": +(g.m7o/c).toFixed(2), "Avg Out PM2.5": +(g.p25o/c).toFixed(1), "Avg Out PM10": +(g.p10o/c).toFixed(1) });
             }
         }
-
-        const worksheet = XLSX.utils.json_to_sheet(dataExcel);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Data_Penelitian");
-
-        let labelFile = (mode === 'raw') ? 'Mentah' : (mode === '15min') ? '15Menit' : (mode === '1hour') ? '1Jam' : '2Jam';
-        let namaFile = `Data_AirQuality_${labelFile}.xlsx`;
-        XLSX.writeFile(workbook, namaFile);
-
-    }).catch(error => {
-        alert("Gagal mengambil data dari Firebase. Error: " + error);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataExcel), "Data_Penelitian");
+        XLSX.writeFile(wb, `Data_AirQuality_${mode}.xlsx`);
     });
 }
