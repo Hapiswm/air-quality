@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/justgage/1.6.1/justgage.min.js"></script>
 </head>
 <body>
     <div class="topbar">
@@ -22,11 +23,50 @@
     </div>
 
     <div class="page-wrap">
-        <div class="page-header">
+        <div class="page-header" style="text-align: center;">
             <h1><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
-            <p>Visualisasi gaya meteran kendaraan untuk pantauan kualitas udara.</p>
+            <p>Visualisasi meteran dengan standar indeks warna ISPU.</p>
         </div>
-        <div id="speedometer-container" class="card-grid"></div>
+
+        <div class="section-title" style="color: var(--accent-yellow); margin-top: 20px;"><i class="fa-solid fa-house"></i> Area Indoor</div>
+        <div class="card-grid">
+            <div class="glass-card" style="text-align: center; padding-bottom: 20px;">
+                <div id="g-mq135-in" style="width:100%; height:140px;"></div>
+                <div id="stat-g-mq135-in" style="margin-top: -10px; min-height: 40px;">MENUNGGU</div>
+            </div>
+            <div class="glass-card" style="text-align: center; padding-bottom: 20px;">
+                <div id="g-mq7-in" style="width:100%; height:140px;"></div>
+                <div id="stat-g-mq7-in" style="margin-top: -10px; min-height: 40px;">MENUNGGU</div>
+            </div>
+            <div class="glass-card" style="text-align: center; padding-bottom: 20px;">
+                <div id="g-pm25-in" style="width:100%; height:140px;"></div>
+                <div id="stat-g-pm25-in" style="margin-top: -10px; min-height: 40px;">MENUNGGU</div>
+            </div>
+            <div class="glass-card" style="text-align: center; padding-bottom: 20px;">
+                <div id="g-pm10-in" style="width:100%; height:140px;"></div>
+                <div id="stat-g-pm10-in" style="margin-top: -10px; min-height: 40px;">MENUNGGU</div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color: var(--accent-yellow); margin-top: 30px;"><i class="fa-solid fa-tree"></i> Area Outdoor</div>
+        <div class="card-grid">
+            <div class="glass-card" style="text-align: center; padding-bottom: 20px;">
+                <div id="g-mq135-out" style="width:100%; height:140px;"></div>
+                <div id="stat-g-mq135-out" style="margin-top: -10px; min-height: 40px;">MENUNGGU</div>
+            </div>
+            <div class="glass-card" style="text-align: center; padding-bottom: 20px;">
+                <div id="g-mq7-out" style="width:100%; height:140px;"></div>
+                <div id="stat-g-mq7-out" style="margin-top: -10px; min-height: 40px;">MENUNGGU</div>
+            </div>
+            <div class="glass-card" style="text-align: center; padding-bottom: 20px;">
+                <div id="g-pm25-out" style="width:100%; height:140px;"></div>
+                <div id="stat-g-pm25-out" style="margin-top: -10px; min-height: 40px;">MENUNGGU</div>
+            </div>
+            <div class="glass-card" style="text-align: center; padding-bottom: 20px;">
+                <div id="g-pm10-out" style="width:100%; height:140px;"></div>
+                <div id="stat-g-pm10-out" style="margin-top: -10px; min-height: 40px;">MENUNGGU</div>
+            </div>
+        </div>
     </div>
     
     <script src="assets/js/app.js"></script>
