@@ -10,8 +10,9 @@ if (!firebase.apps.length) {
 }
 const db = firebase.database();
 
-let gasChart, particleChart;
-const maxDataPoints = 15;
+let gasChart = null, particleChart = null; 
+let compMq135 = null, compMq7 = null, compPm25 = null, compPm10 = null; 
+let maxDataPoints = 15; 
 
 // =========================================================================
 // 2. FITUR LOGIN & INISIALISASI HALAMAN
@@ -19,12 +20,17 @@ const maxDataPoints = 15;
 window.onload = () => {
     let panel = document.getElementById('admin-panel');
     let btnLogin = document.getElementById('btn-login');
+    
     if(sessionStorage.getItem("isAdmin") === "true") {
         if(panel) panel.style.display = 'block';
         if(btnLogin) btnLogin.innerHTML = '<i class="fa-solid fa-sign-out-alt"></i> Logout Admin';
     }
-    if(document.getElementById('gasChart')) initCharts();
-    initHistoryTable(); // Panggil fungsi pembuat tabel
+    
+    setTimeout(() => {
+        if(document.getElementById('gasChart')) initDashboardCharts();
+        if(document.getElementById('chart-mq135')) initComparisonCharts();
+        if(document.getElementById('history-table-body')) initHistoryTable();
+    }, 300); 
 };
 
 function toggleLogin() {
@@ -35,23 +41,20 @@ function toggleLogin() {
         sessionStorage.removeItem("isAdmin");
         if(panel) panel.style.display = 'none';
         if(btnLogin) btnLogin.innerHTML = '<i class="fa-solid fa-lock"></i> Login Admin';
-        alert("Anda telah logout dari mode Admin.");
+        alert("Anda telah logout.");
     } else {
         let pass = prompt("Masukkan Password Admin:");
         if (pass === "hafidz123") {
             sessionStorage.setItem("isAdmin", "true");
             if(panel) panel.style.display = 'block';
             if(btnLogin) btnLogin.innerHTML = '<i class="fa-solid fa-sign-out-alt"></i> Logout Admin';
-            alert("Login Berhasil! Panel kontrol telah dibuka.");
         } else if (pass !== null) {
             alert("Password Salah!");
         }
     }
 }
 
-function setAlat(status) {
-    db.ref('/kontrol/sistem').set(status);
-}
+function setAlat(status) { db.ref('/kontrol/sistem').set(status); }
 
 db.ref('/kontrol/sistem').on('value', (snapshot) => {
     let status = snapshot.val();
@@ -70,59 +73,85 @@ db.ref('/kontrol/sistem').on('value', (snapshot) => {
 });
 
 // =========================================================================
-// 3. GRAFIK LIVE & UPDATE DASHBOARD (DENGAN SEMUA STATUS SENSOR)
+// 3. INISIALISASI GRAFIK
 // =========================================================================
-function initCharts() {
-    const ctxGas = document.getElementById('gasChart').getContext('2d');
-    const ctxParticle = document.getElementById('particleChart').getContext('2d');
-
+function initDashboardCharts() {
+    if (typeof Chart === 'undefined') return;
     Chart.defaults.color = '#cbd5e1';
     
-    gasChart = new Chart(ctxGas, {
-        type: 'line',
-        data: { labels: [], datasets: [
+    gasChart = new Chart(document.getElementById('gasChart').getContext('2d'), {
+        type: 'line', data: { labels: [], datasets: [
             { label: 'MQ-135 (PPM)', borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', data: [], fill: true, tension: 0.4 },
             { label: 'MQ-7 (PPM)', borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', data: [], fill: true, tension: 0.4 }
-        ]},
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+        ]}, options: { responsive: true, maintainAspectRatio: false }
     });
 
-    particleChart = new Chart(ctxParticle, {
-        type: 'line',
-        data: { labels: [], datasets: [
+    particleChart = new Chart(document.getElementById('particleChart').getContext('2d'), {
+        type: 'line', data: { labels: [], datasets: [
             { label: 'PM 2.5', borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', data: [], fill: true, tension: 0.4 },
             { label: 'PM 10', borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', data: [], fill: true, tension: 0.4 }
-        ]},
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+        ]}, options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
-function safeUpdateDOM(id, val, isStatus = false) {
-    let el = document.getElementById(id);
-    if(el) {
-        if (isStatus) {
-            el.innerText = val;
-            if(val === "BAIK") el.style.color = "#10b981";
-            else if(val === "SEDANG") el.style.color = "#f59e0b";
-            else el.style.color = "#ef4444";
-        } else {
-            el.innerText = (typeof val === 'number' && val % 1 !== 0) ? val.toFixed(2) : val;
-        }
+function initComparisonCharts() {
+    if (typeof Chart === 'undefined') return;
+    Chart.defaults.color = '#cbd5e1';
+    
+    const commonOpts = { responsive: true, maintainAspectRatio: false };
+    const createCompChart = (id) => {
+        return new Chart(document.getElementById(id).getContext('2d'), {
+            type: 'line', data: { labels: [], datasets: [
+                { label: 'INDOOR', borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', data: [], fill: true, tension: 0.4 },
+                { label: 'OUTDOOR', borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', data: [], fill: true, tension: 0.4 }
+            ]}, options: commonOpts
+        });
+    };
+
+    compMq135 = createCompChart('chart-mq135');
+    compMq7 = createCompChart('chart-mq7');
+    compPm25 = createCompChart('chart-pm25');
+    compPm10 = createCompChart('chart-pm10');
+    
+    let filterEl = document.getElementById('chart-time-filter');
+    if(filterEl) {
+        filterEl.addEventListener('change', (e) => {
+            maxDataPoints = parseInt(e.target.value);
+            alert("Rentang waktu diperbarui.");
+        });
     }
 }
 
-// Penentuan Status Debu (PM2.5 & PM10)
-function hitungStatusDebu(val) {
-    if (val <= 50) return "BAIK";
-    if (val <= 150) return "SEDANG";
-    return "BERBAHAYA";
-}
+// =========================================================================
+// 4. UPDATE DATA DASHBOARD & WARNA KOTAK KARTU (SMART UI)
+// =========================================================================
+function hitungStatusDebu(val) { return val <= 50 ? "BAIK" : val <= 150 ? "SEDANG" : "BERBAHAYA"; }
+function hitungStatusGas(ppm) { return ppm <= 100 ? "BAIK" : ppm <= 250 ? "SEDANG" : "BERBAHAYA"; }
 
-// Penentuan Status Gas (MQ135 & MQ7)
-function hitungStatusGas(ppm) {
-    if (ppm <= 100) return "BAIK";
-    if (ppm <= 250) return "SEDANG";
-    return "BERBAHAYA";
+// Fungsi sakti untuk mewarnai tulisan dan garis atas kotak sekaligus
+function updateSensorCard(valId, statId, cardId, val, type) {
+    let elVal = document.getElementById(valId);
+    let elStat = document.getElementById(statId);
+    let elCard = document.getElementById(cardId);
+    
+    if(elVal) elVal.innerText = (typeof val === 'number' && val % 1 !== 0) ? val.toFixed(2) : val;
+    
+    let status = (type === 'debu') ? hitungStatusDebu(val) : hitungStatusGas(val);
+    let warna = "#10b981"; // Default Hijau (BAIK)
+    
+    if(status === "SEDANG") warna = "#f59e0b"; // Kuning
+    else if(status === "BERBAHAYA") warna = "#ef4444"; // Merah
+    
+    if(elStat) {
+        elStat.innerText = status;
+        elStat.style.color = warna;
+    }
+    
+    if(elCard) {
+        elCard.style.borderTop = `4px solid ${warna}`;
+        // Opsional: Tambahkan sedikit cahaya (glow) sesuai warna agar makin cantik
+        elCard.style.boxShadow = `0 4px 15px ${warna}22`; 
+    }
 }
 
 db.ref('/sensorData').on('value', (snapshot) => {
@@ -135,68 +164,56 @@ db.ref('/sensorData').on('value', (snapshot) => {
             statText.innerText = 'TERHUBUNG (LIVE)';
         }
 
-        // --- UPDATE INDOOR DENGAN STATUS ---
-        safeUpdateDOM('val-mq135_indoor', data.mq135_indoor);
-        safeUpdateDOM('stat-mq135_indoor', hitungStatusGas(data.mq135_indoor), true);
-        
-        safeUpdateDOM('val-mq7_indoor', data.mq7_indoor);
-        safeUpdateDOM('stat-mq7_indoor', hitungStatusGas(data.mq7_indoor), true);
-        
-        safeUpdateDOM('val-pm25_indoor', data.pm25_indoor);
-        safeUpdateDOM('stat-pm25_indoor', hitungStatusDebu(data.pm25_indoor), true);
-        
-        safeUpdateDOM('val-pm10_indoor', data.pm10_indoor);
-        safeUpdateDOM('stat-pm10_indoor', hitungStatusDebu(data.pm10_indoor), true);
+        // --- UPDATE DASHBOARD DENGAN KARTU BERWARNA ---
+        updateSensorCard('val-mq135_indoor', 'stat-mq135_indoor', 'card-mq135_indoor', data.mq135_indoor, 'gas');
+        updateSensorCard('val-mq7_indoor', 'stat-mq7_indoor', 'card-mq7_indoor', data.mq7_indoor, 'gas');
+        updateSensorCard('val-pm25_indoor', 'stat-pm25_indoor', 'card-pm25_indoor', data.pm25_indoor, 'debu');
+        updateSensorCard('val-pm10_indoor', 'stat-pm10_indoor', 'card-pm10_indoor', data.pm10_indoor, 'debu');
 
-        // --- UPDATE OUTDOOR DENGAN STATUS ---
-        safeUpdateDOM('val-mq135_outdoor', data.mq135_outdoor);
-        safeUpdateDOM('stat-mq135_outdoor', hitungStatusGas(data.mq135_outdoor), true);
-        
-        safeUpdateDOM('val-mq7_outdoor', data.mq7_outdoor);
-        safeUpdateDOM('stat-mq7_outdoor', hitungStatusGas(data.mq7_outdoor), true);
-        
-        safeUpdateDOM('val-pm25_outdoor', data.pm25_outdoor);
-        safeUpdateDOM('stat-pm25_outdoor', hitungStatusDebu(data.pm25_outdoor), true);
-        
-        safeUpdateDOM('val-pm10_outdoor', data.pm10_outdoor);
-        safeUpdateDOM('stat-pm10_outdoor', hitungStatusDebu(data.pm10_outdoor), true);
+        updateSensorCard('val-mq135_outdoor', 'stat-mq135_outdoor', 'card-mq135_outdoor', data.mq135_outdoor, 'gas');
+        updateSensorCard('val-mq7_outdoor', 'stat-mq7_outdoor', 'card-mq7_outdoor', data.mq7_outdoor, 'gas');
+        updateSensorCard('val-pm25_outdoor', 'stat-pm25_outdoor', 'card-pm25_outdoor', data.pm25_outdoor, 'debu');
+        updateSensorCard('val-pm10_outdoor', 'stat-pm10_outdoor', 'card-pm10_outdoor', data.pm10_outdoor, 'debu');
 
-        // Update Grafik Live
-        if(gasChart && particleChart) {
-            let now = new Date().toLocaleTimeString('id-ID', { hour12: false });
-            
-            gasChart.data.labels.push(now);
-            gasChart.data.datasets[0].data.push(data.mq135_indoor);
-            gasChart.data.datasets[1].data.push(data.mq7_indoor);
-            
-            particleChart.data.labels.push(now);
-            particleChart.data.datasets[0].data.push(data.pm25_indoor);
-            particleChart.data.datasets[1].data.push(data.pm10_indoor);
+        let now = new Date().toLocaleTimeString('id-ID', { hour12: false });
 
-            if(gasChart.data.labels.length > maxDataPoints) {
-                gasChart.data.labels.shift(); gasChart.data.datasets[0].data.shift(); gasChart.data.datasets[1].data.shift();
-            }
-            if(particleChart.data.labels.length > maxDataPoints) {
-                particleChart.data.labels.shift(); particleChart.data.datasets[0].data.shift(); particleChart.data.datasets[1].data.shift();
-            }
-            gasChart.update(); particleChart.update();
+        // --- UPDATE GRAFIK DASHBOARD ---
+        if(gasChart !== null && particleChart !== null) {
+            gasChart.data.labels.push(now); gasChart.data.datasets[0].data.push(data.mq135_indoor || 0); gasChart.data.datasets[1].data.push(data.mq7_indoor || 0);
+            particleChart.data.labels.push(now); particleChart.data.datasets[0].data.push(data.pm25_indoor || 0); particleChart.data.datasets[1].data.push(data.pm10_indoor || 0);
+
+            if(gasChart.data.labels.length > maxDataPoints) { gasChart.data.labels.shift(); gasChart.data.datasets[0].data.shift(); gasChart.data.datasets[1].data.shift(); }
+            if(particleChart.data.labels.length > maxDataPoints) { particleChart.data.labels.shift(); particleChart.data.datasets[0].data.shift(); particleChart.data.datasets[1].data.shift(); }
+            gasChart.update('none'); particleChart.update('none');
+        }
+
+        // --- UPDATE GRAFIK KOMPARASI ---
+        if(compMq135 !== null) {
+            const pushComp = (chart, valIn, valOut) => {
+                chart.data.labels.push(now);
+                chart.data.datasets[0].data.push(valIn || 0); chart.data.datasets[1].data.push(valOut || 0);
+                if(chart.data.labels.length > maxDataPoints) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); chart.data.datasets[1].data.shift(); }
+                chart.update('none');
+            };
+            pushComp(compMq135, data.mq135_indoor, data.mq135_outdoor);
+            pushComp(compMq7, data.mq7_indoor, data.mq7_outdoor);
+            pushComp(compPm25, data.pm25_indoor, data.pm25_outdoor);
+            pushComp(compPm10, data.pm10_indoor, data.pm10_outdoor);
         }
     }
 });
 
-
 // =========================================================================
-// 4. FITUR TABEL PRATINJAU HISTORY (LIVE DI WEB)
+// 5. TABEL PRATINJAU HISTORY
 // =========================================================================
 function initHistoryTable() {
     let tbody = document.getElementById('history-table-body');
-    if (!tbody) return; // Jika bukan di halaman history, batalkan
+    if (!tbody) return; 
 
-    // Ambil 10 data terakhir dari folder /logs secara live
     db.ref('/logs').limitToLast(10).on('value', (snapshot) => {
         tbody.innerHTML = '';
         if (!snapshot.exists()) {
-            tbody.innerHTML = '<tr><td colspan="7">Belum ada data history yang tersimpan.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9">Belum ada data history yang tersimpan.</td></tr>'; 
             return;
         }
 
@@ -204,17 +221,17 @@ function initHistoryTable() {
         snapshot.forEach(child => {
             let r = child.val();
             let date = formatTanggalWaktu(getRealTimeFromFirebaseKey(child.key));
-            
-            // Masukkan data baru ke urutan paling atas (unshift)
             rowsHTML.unshift(`
                 <tr>
                     <td>${date}</td>
                     <td>${parseFloat(r.mq135_indoor||0).toFixed(1)}</td>
                     <td>${parseFloat(r.mq7_indoor||0).toFixed(1)}</td>
                     <td>${r.pm25_indoor||0}</td>
+                    <td>${r.pm10_indoor||0}</td>
                     <td>${parseFloat(r.mq135_outdoor||0).toFixed(1)}</td>
                     <td>${parseFloat(r.mq7_outdoor||0).toFixed(1)}</td>
                     <td>${r.pm25_outdoor||0}</td>
+                    <td>${r.pm10_outdoor||0}</td>
                 </tr>
             `);
         });
@@ -223,7 +240,7 @@ function initHistoryTable() {
 }
 
 // =========================================================================
-// 5. FITUR EXPORT EXCEL
+// 6. EXPORT EXCEL
 // =========================================================================
 const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 function getRealTimeFromFirebaseKey(id) {
@@ -318,7 +335,7 @@ function downloadExcel(mode) {
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data_Penelitian");
 
         let labelFile = (mode === 'raw') ? 'Mentah' : (mode === '15min') ? '15Menit' : (mode === '1hour') ? '1Jam' : '2Jam';
-        let namaFile = `Data_NanoBanana_${labelFile}.xlsx`;
+        let namaFile = `Data_AirQuality_${labelFile}.xlsx`;
         XLSX.writeFile(workbook, namaFile);
 
     }).catch(error => {
