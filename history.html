@@ -3,65 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Quality - History</title>
+    <title>Air Quality - History Tabel</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        .filter-container { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .filter-box { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 8px 15px; border-radius: 8px; color: var(--text-main); flex: 1; min-width: 150px; }
+        .filter-btn { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .filter-btn:hover { background: #2563eb; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; color: var(--text-main); font-size: 14px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid var(--glass-border); text-align: center; }
+        th { background: rgba(0,0,0,0.2); color: var(--accent-yellow); text-transform: uppercase; font-weight: 600; }
+        tr:hover { background: rgba(255,255,255,0.05); }
+        .btn-reset { background: var(--ispu-tidak-sehat); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-reset:hover { background: #b91c1c; }
+        .btn-excel { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-excel:hover { background: #059669; }
+    </style>
 </head>
 <body>
-    <div class="topbar">
-        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
-        <div class="topbar-menu">
-            <a href="index.html">Dashboard</a>
-            <a href="speedometer.html">Speedometer</a>
-            <a href="grafik.html">Grafik</a>
-            <a href="history.html" class="active">History</a>
+@@ -48,9 +50,8 @@
+                    <option value="pm25">PM 2.5</option>
+                    <option value="pm10">PM 10</option>
+                </select>
+                <input type="date" id="filter-start" class="filter-box" placeholder="Tanggal Mulai">
+                <input type="date" id="filter-end" class="filter-box" placeholder="Tanggal Akhir">
+                <button class="filter-btn"><i class="fa-solid fa-filter"></i> Filter</button>
+                <button class="btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
+                <div style="flex-grow: 1;"></div>
+                <button class="btn-reset" onclick="resetHistory()"><i class="fa-solid fa-trash"></i> Hapus Riwayat</button>
+            </div>
+@@ -66,13 +67,12 @@
+                            <th>Status ISPU (Indoor)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="page-wrap">
-        <div class="page-header">
-            <div>
-                <h1><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Data</h1>
-                <p>Unduh rekap data pemantauan untuk analisis penelitian.</p>
-            </div>
-        </div>
-
-        <div class="glass-card" style="margin-bottom: 20px; text-align: center; border: 1px solid var(--accent-yellow);">
-            <div class="section-title" style="color: var(--accent-yellow); margin-bottom: 15px;">
-                <i class="fa-solid fa-file-excel"></i> Export Data (Format .xlsx)
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                <button onclick="downloadExcel('raw')" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-download"></i> Mentah
-                </button>
-                <button onclick="downloadExcel('15min')" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-clock"></i> Per 15 Menit
-                </button>
-                <button onclick="downloadExcel('1hour')" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-calendar-day"></i> Per 1 Jam
-                </button>
-                <button onclick="downloadExcel('2hour')" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-calendar-week"></i> Per 2 Jam
-                </button>
-            </div>
-            <p style="font-size: 12px; color: #9ca3af; margin-top: 10px;">*Tunggu hingga notifikasi selesai muncul setelah menekan tombol.</p>
-        </div>
-
-        <div class="glass-card">
-            <div class="section-title"><i class="fa-solid fa-circle-info"></i> Panduan Penggunaan Data</div>
-            <ul style="color: #cbd5e1; line-height: 1.6; padding-left: 20px;">
-                <li><strong>Mentah:</strong> Mengunduh seluruh log data asli.</li>
-                <li><strong>Per 15 Menit:</strong> Cocok untuk mengamati paparan polutan jangka pendek.</li>
-                <li><strong>Per 1 & 2 Jam:</strong> Cocok untuk grafik tren jangka panjang di laporan KTI.</li>
-            </ul>
-        </div>
-    </div>
-    
     <script src="assets/js/app.js"></script>
 </body>
 </html>
