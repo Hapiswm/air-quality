@@ -21,6 +21,7 @@ function setAlat(status) {
 db.ref('/kontrol/sistem').on('value', (snapshot) => {
     let status = snapshot.val();
     let statusSistemEl = document.getElementById('status-sistem');
+    
     if(statusSistemEl) {
         if(status === 'START') {
             statusSistemEl.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Status: AKTIF (START)`;
@@ -48,28 +49,27 @@ function safeUpdateDOM(id, val) {
 db.ref('/sensorData').on('value', (snapshot) => {
     let data = snapshot.val();
     if(data) {
-        // Update Status Koneksi
         let connEl = document.getElementById('conn-status');
         let statText = document.getElementById('status-text');
+        
         if(connEl && statText) {
             connEl.className = 'status-badge online';
             statText.innerText = 'TERHUBUNG (LIVE)';
         }
 
-        // Indoor
+        // Update Indoor
         safeUpdateDOM('val-mq135_indoor', data.mq135_indoor);
         safeUpdateDOM('val-mq7_indoor', data.mq7_indoor);
         safeUpdateDOM('val-pm25_indoor', data.pm25_indoor);
         safeUpdateDOM('val-pm10_indoor', data.pm10_indoor);
 
-        // Outdoor
+        // Update Outdoor
         safeUpdateDOM('val-mq135_outdoor', data.mq135_outdoor);
         safeUpdateDOM('val-mq7_outdoor', data.mq7_outdoor);
         safeUpdateDOM('val-pm25_outdoor', data.pm25_outdoor);
         safeUpdateDOM('val-pm10_outdoor', data.pm10_outdoor);
     }
 });
-
 
 // =========================================================================
 // 4. FITUR EXPORT EXCEL (RAW, 15 MENIT, 1 JAM) UNTUK PENELITIAN
@@ -97,7 +97,8 @@ function formatTanggalWaktu(date) {
 function downloadExcel(mode) {
     alert("Sistem sedang merakit data Excel... Silakan tunggu sebentar.");
     
-    db.ref('/logs').once('value').then(snapshot => {
+    // Mencegah browser hang, ambil 10.000 data terakhir saja
+    db.ref('/logs').limitToLast(10000).once('value').then(snapshot => {
         let dataMentah = [];
         
         snapshot.forEach(childSnapshot => {
@@ -118,14 +119,14 @@ function downloadExcel(mode) {
         if (mode === 'raw') {
             dataExcel = dataMentah.map(r => ({
                 "Waktu (WIB)": formatTanggalWaktu(r.waktuAsli),
-                "MQ-135 Indoor (PPM)": parseFloat(r.mq135_indoor).toFixed(2),
-                "MQ-7 Indoor (PPM)": parseFloat(r.mq7_indoor).toFixed(2),
-                "PM2.5 Indoor (ug/m3)": r.pm25_indoor,
-                "PM10 Indoor (ug/m3)": r.pm10_indoor,
-                "MQ-135 Outdoor (PPM)": parseFloat(r.mq135_outdoor).toFixed(2),
-                "MQ-7 Outdoor (PPM)": parseFloat(r.mq7_outdoor).toFixed(2),
-                "PM2.5 Outdoor (ug/m3)": r.pm25_outdoor,
-                "PM10 Outdoor (ug/m3)": r.pm10_outdoor
+                "MQ-135 Indoor (PPM)": parseFloat(r.mq135_indoor || 0).toFixed(2),
+                "MQ-7 Indoor (PPM)": parseFloat(r.mq7_indoor || 0).toFixed(2),
+                "PM2.5 Indoor (ug/m3)": r.pm25_indoor || 0,
+                "PM10 Indoor (ug/m3)": r.pm10_indoor || 0,
+                "MQ-135 Outdoor (PPM)": parseFloat(r.mq135_outdoor || 0).toFixed(2),
+                "MQ-7 Outdoor (PPM)": parseFloat(r.mq7_outdoor || 0).toFixed(2),
+                "PM2.5 Outdoor (ug/m3)": r.pm25_outdoor || 0,
+                "PM10 Outdoor (ug/m3)": r.pm10_outdoor || 0
             }));
         } 
         // MODE: RATA-RATA
