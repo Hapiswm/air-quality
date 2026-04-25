@@ -67,7 +67,7 @@ db.ref('/kontrol/sistem').on('value', (snapshot) => {
 });
 
 // =========================================================================
-// 3. GRAFIK (DATA HISTORY PRE-LOAD)
+// 3. GRAFIK DENGAN PRE-LOAD HISTORY
 // =========================================================================
 const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 function getRealTimeFromFirebaseKey(id) {
@@ -158,7 +158,7 @@ function initComparisonCharts() {
 }
 
 // =========================================================================
-// 4. PENENTUAN STATUS (WARNA DAN EMOJI)
+// 4. LOGIKA EMOJI ISPU & UPDATE KARTU (DASHBOARD + SPEEDO)
 // =========================================================================
 function getISPUStatus(val) {
     if (val <= 50) return { text: "BAIK", color: "#22c55e", emoji: "😃" }; 
@@ -168,49 +168,41 @@ function getISPUStatus(val) {
     return { text: "BERBAHAYA", color: "#78350f", emoji: "☠️" }; 
 }
 
-// =========================================================================
-// 5. SISTEM PEMBARUAN SPEEDOMETER & KARTU DASHBOARD
-// =========================================================================
-function updateGaugeAndCard(idPrefix, val) {
+function updateGaugeAndCard(idPrefix, val, isDebu) {
     let numVal = parseFloat(val || 0);
     let displayVal = (numVal % 1 !== 0) ? numVal.toFixed(1) : numVal;
     let ispu = getISPUStatus(numVal);
 
-    // 1. UPDATE KARTU DASHBOARD BIASA
-    let elValCard = document.getElementById(`val-${idPrefix}`);
-    let elStatCard = document.getElementById(`stat-${idPrefix}`);
+    // Seleksi Elemen
+    let elVal = document.getElementById(`val-${idPrefix}`);
+    let elStat = document.getElementById(`stat-${idPrefix}`);
     let elCard = document.getElementById(`card-${idPrefix}`);
-    
-    if(elValCard) elValCard.innerText = displayVal;
-    if(elStatCard) { 
-        elStatCard.innerHTML = `<div style="font-size: 26px; margin-bottom: 5px;">${ispu.emoji}</div><div style="font-weight:bold;">${ispu.text}</div>`; 
-        elStatCard.style.color = ispu.color; 
+    let needle = document.getElementById(`needle-${idPrefix}`);
+
+    // Update Teks Angka
+    if (elVal) {
+        let unit = isDebu ? "µg/m³" : "PPM";
+        // Berjalan baik untuk dashboard maupun speedo
+        elVal.innerHTML = `${displayVal} <span style="font-size: 14px; font-weight: normal; color: #9ca3af;">${unit}</span>`;
     }
-    if(elCard) { 
+    
+    // Update Emoji & Teks Status (Posisi Tengah)
+    if (elStat) { 
+        elStat.innerHTML = `<div style="font-size: 32px; margin-bottom: 5px;">${ispu.emoji}</div><div style="font-weight: 800; font-size: 14px; color: ${ispu.color}; text-transform: uppercase;">${ispu.text}</div>`; 
+    }
+
+    // Update Warna Kotak (Border & Glow)
+    if (elCard) { 
         elCard.style.borderTop = `4px solid ${ispu.color}`; 
         elCard.style.boxShadow = `0 4px 15px ${ispu.color}33`; 
     }
 
-    // 2. UPDATE SPEEDOMETER SVG 
-    let needleSVG = document.getElementById(`needle-${idPrefix}`);
-    let valSVG = document.getElementById(`val-${idPrefix}`); // Tag <text> di SVG
-    let statSVG = document.getElementById(`stat-${idPrefix}`); // Div Status di bawah SVG
-
-    if (valSVG) {
-        let unit = valSVG.getAttribute('data-unit') || '';
-        valSVG.innerHTML = `${displayVal} <tspan font-size="10" fill="#9ca3af">${unit}</tspan>`;
-    }
-    
-    if (needleSVG) {
-        // Rumus Matematika Rotasi Jarum (Skala Max 400 PPM/Debu)
-        let maxScale = 400;
+    // Update Animasi Jarum (Khusus Speedometer)
+    if (needle) {
+        let maxScale = 400; // Skala maksimal seperti di gambar
         let clamped = Math.min(Math.max(numVal, 0), maxScale);
         let angle = -90 + (clamped / maxScale) * 180;
-        needleSVG.setAttribute('transform', `rotate(${angle}, 100, 130)`);
-    }
-
-    if (statSVG) {
-        statSVG.innerHTML = `<div style="font-size: 26px; margin-bottom: 5px;">${ispu.emoji}</div><div style="color: ${ispu.color};">${ispu.text}</div>`;
+        needle.style.transform = `rotate(${angle}deg)`;
     }
 }
 
@@ -221,27 +213,27 @@ db.ref('/sensorData').on('value', (snapshot) => {
         let statText = document.getElementById('status-text');
         if(connEl && statText) { connEl.className = 'status-badge online'; statText.innerText = 'TERHUBUNG (LIVE)'; }
 
-        // MENGIRIM DATA KE DASHBOARD & SPEEDOMETER SEKALIGUS
-        updateGaugeAndCard('mq135_indoor', data.mq135_indoor);
-        updateGaugeAndCard('mq7_indoor', data.mq7_indoor);
-        updateGaugeAndCard('pm25_indoor', data.pm25_indoor);
-        updateGaugeAndCard('pm10_indoor', data.pm10_indoor);
+        // Update Dashboard Utama (id nya pakai garis bawah "_")
+        updateGaugeAndCard('mq135_indoor', data.mq135_indoor, false);
+        updateGaugeAndCard('mq7_indoor', data.mq7_indoor, false);
+        updateGaugeAndCard('pm25_indoor', data.pm25_indoor, true);
+        updateGaugeAndCard('pm10_indoor', data.pm10_indoor, true);
         
-        updateGaugeAndCard('mq135_outdoor', data.mq135_outdoor);
-        updateGaugeAndCard('mq7_outdoor', data.mq7_outdoor);
-        updateGaugeAndCard('pm25_outdoor', data.pm25_outdoor);
-        updateGaugeAndCard('pm10_outdoor', data.pm10_outdoor);
+        updateGaugeAndCard('mq135_outdoor', data.mq135_outdoor, false);
+        updateGaugeAndCard('mq7_outdoor', data.mq7_outdoor, false);
+        updateGaugeAndCard('pm25_outdoor', data.pm25_outdoor, true);
+        updateGaugeAndCard('pm10_outdoor', data.pm10_outdoor, true);
         
-        // Membedakan ID untuk Speedometer (pakai id dengan -in atau -out)
-        updateGaugeAndCard('mq135-in', data.mq135_indoor);
-        updateGaugeAndCard('mq7-in', data.mq7_indoor);
-        updateGaugeAndCard('pm25-in', data.pm25_indoor);
-        updateGaugeAndCard('pm10-in', data.pm10_indoor);
+        // Update Halaman Speedometer (id nya pakai strip "-")
+        updateGaugeAndCard('mq135-in', data.mq135_indoor, false);
+        updateGaugeAndCard('mq7-in', data.mq7_indoor, false);
+        updateGaugeAndCard('pm25-in', data.pm25_indoor, true);
+        updateGaugeAndCard('pm10-in', data.pm10_indoor, true);
         
-        updateGaugeAndCard('mq135-out', data.mq135_outdoor);
-        updateGaugeAndCard('mq7-out', data.mq7_outdoor);
-        updateGaugeAndCard('pm25-out', data.pm25_outdoor);
-        updateGaugeAndCard('pm10-out', data.pm10_outdoor);
+        updateGaugeAndCard('mq135-out', data.mq135_outdoor, false);
+        updateGaugeAndCard('mq7-out', data.mq7_outdoor, false);
+        updateGaugeAndCard('pm25-out', data.pm25_outdoor, true);
+        updateGaugeAndCard('pm10-out', data.pm10_outdoor, true);
 
         let now = new Date().toLocaleTimeString('id-ID', { hour12: false });
 
@@ -270,7 +262,7 @@ db.ref('/sensorData').on('value', (snapshot) => {
 });
 
 // =========================================================================
-// 6. HISTORY TABLE & EXCEL REMAINS UNCHANGED
+// 5. HISTORY TABLE & EXCEL (TIDAK ADA PERUBAHAN)
 // =========================================================================
 function formatTanggalWaktu(date) { let d=date.getDate().toString().padStart(2,'0'); let m=(date.getMonth()+1).toString().padStart(2,'0'); return `${d}/${m}/${date.getFullYear()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`; }
 function initHistoryTable() {
@@ -298,6 +290,6 @@ function downloadExcel(mode) {
             });
             for (let w in gw) { let g=gw[w]; let c=g.c; dx.push({"Waktu":w,"Sampel":c,"Avg In MQ135":+(g.m1i/c).toFixed(2),"Avg In MQ7":+(g.m7i/c).toFixed(2),"Avg In PM2.5":+(g.p2i/c).toFixed(1),"Avg In PM10":+(g.p1i/c).toFixed(1),"Avg Out MQ135":+(g.m1o/c).toFixed(2),"Avg Out MQ7":+(g.m7o/c).toFixed(2),"Avg Out PM2.5":+(g.p2o/c).toFixed(1),"Avg Out PM10":+(g.p1o/c).toFixed(1)}); }
         }
-        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dx), "Data_KTI"); XLSX.writeFile(wb, `Data_AirQuality_${mode}.xlsx`);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dx), "Data_Air_Quality"); XLSX.writeFile(wb, `Data_AirQuality_${mode}.xlsx`);
     });
 }
