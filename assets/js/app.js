@@ -11,13 +11,50 @@ if (!firebase.apps.length) {
 const db = firebase.database();
 
 // =========================================================================
-// 2. KONTROL SISTEM (START / STOP DARI DASHBOARD)
+// 2. FITUR LOGIN ADMIN & KONTROL SISTEM
 // =========================================================================
+
+// Cek status login saat halaman dimuat
+window.onload = () => {
+    let panel = document.getElementById('admin-panel');
+    let btnLogin = document.getElementById('btn-login');
+    if(sessionStorage.getItem("isAdmin") === "true") {
+        if(panel) panel.style.display = 'block';
+        if(btnLogin) btnLogin.innerHTML = '<i class="fa-solid fa-sign-out-alt"></i> Logout Admin';
+    }
+};
+
+// Fungsi Login / Logout
+function toggleLogin() {
+    let panel = document.getElementById('admin-panel');
+    let btnLogin = document.getElementById('btn-login');
+
+    if (sessionStorage.getItem("isAdmin") === "true") {
+        // Proses Logout
+        sessionStorage.removeItem("isAdmin");
+        if(panel) panel.style.display = 'none';
+        if(btnLogin) btnLogin.innerHTML = '<i class="fa-solid fa-lock"></i> Login Admin';
+        alert("Anda telah logout dari mode Admin.");
+    } else {
+        // Proses Login (Password Default: hafidz123)
+        let pass = prompt("Masukkan Password Admin:");
+        if (pass === "hafidz123") {
+            sessionStorage.setItem("isAdmin", "true");
+            if(panel) panel.style.display = 'block';
+            if(btnLogin) btnLogin.innerHTML = '<i class="fa-solid fa-sign-out-alt"></i> Logout Admin';
+            alert("Login Berhasil! Panel kontrol telah dibuka.");
+        } else if (pass !== null) {
+            alert("Password Salah!");
+        }
+    }
+}
+
+// Fungsi Start / Stop Alat
 function setAlat(status) {
     db.ref('/kontrol/sistem').set(status);
 }
 
-// Pantau status alat untuk mengubah warna indikator di web
+// Pantau Status Start/Stop dari Firebase
 db.ref('/kontrol/sistem').on('value', (snapshot) => {
     let status = snapshot.val();
     let statusSistemEl = document.getElementById('status-sistem');
@@ -25,11 +62,11 @@ db.ref('/kontrol/sistem').on('value', (snapshot) => {
     if(statusSistemEl) {
         if(status === 'START') {
             statusSistemEl.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Status: AKTIF (START)`;
-            statusSistemEl.style.background = "rgba(16, 185, 129, 0.2)"; // Hijau
+            statusSistemEl.style.background = "rgba(16, 185, 129, 0.2)"; 
             statusSistemEl.style.color = "#10b981";
         } else {
             statusSistemEl.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Status: MATI (STOP)`;
-            statusSistemEl.style.background = "rgba(239, 68, 68, 0.2)"; // Merah
+            statusSistemEl.style.background = "rgba(239, 68, 68, 0.2)"; 
             statusSistemEl.style.color = "#ef4444";
         }
     }
@@ -38,12 +75,26 @@ db.ref('/kontrol/sistem').on('value', (snapshot) => {
 // =========================================================================
 // 3. MENAMPILKAN DATA REAL-TIME KE DASHBOARD
 // =========================================================================
-function safeUpdateDOM(id, val) {
+function safeUpdateDOM(id, val, isStatus = false) {
     let el = document.getElementById(id);
     if(el) {
-        // Jika nilainya angka desimal, bulatkan 2 angka di belakang koma
-        el.innerText = (typeof val === 'number' && val % 1 !== 0) ? val.toFixed(2) : val;
+        if (isStatus) {
+            // Logika Status Baik/Sedang/Bahaya
+            el.innerText = val;
+            if(val === "BAIK") el.style.color = "#10b981";
+            else if(val === "SEDANG") el.style.color = "#f59e0b";
+            else el.style.color = "#ef4444";
+        } else {
+            el.innerText = (typeof val === 'number' && val % 1 !== 0) ? val.toFixed(2) : val;
+        }
     }
+}
+
+// Hitung Status Kualitas Udara (Sederhana)
+function hitungStatus(pm25) {
+    if (pm25 <= 15) return "BAIK";
+    if (pm25 <= 55) return "SEDANG";
+    return "BERBAHAYA";
 }
 
 db.ref('/sensorData').on('value', (snapshot) => {
@@ -51,31 +102,31 @@ db.ref('/sensorData').on('value', (snapshot) => {
     if(data) {
         let connEl = document.getElementById('conn-status');
         let statText = document.getElementById('status-text');
-        
         if(connEl && statText) {
             connEl.className = 'status-badge online';
             statText.innerText = 'TERHUBUNG (LIVE)';
         }
 
-        // Update Indoor
+        // Indoor
         safeUpdateDOM('val-mq135_indoor', data.mq135_indoor);
         safeUpdateDOM('val-mq7_indoor', data.mq7_indoor);
         safeUpdateDOM('val-pm25_indoor', data.pm25_indoor);
         safeUpdateDOM('val-pm10_indoor', data.pm10_indoor);
+        safeUpdateDOM('stat-pm25_indoor', hitungStatus(data.pm25_indoor), true);
 
-        // Update Outdoor
+        // Outdoor
         safeUpdateDOM('val-mq135_outdoor', data.mq135_outdoor);
         safeUpdateDOM('val-mq7_outdoor', data.mq7_outdoor);
         safeUpdateDOM('val-pm25_outdoor', data.pm25_outdoor);
         safeUpdateDOM('val-pm10_outdoor', data.pm10_outdoor);
+        safeUpdateDOM('stat-pm25_outdoor', hitungStatus(data.pm25_outdoor), true);
     }
 });
 
 // =========================================================================
-// 4. FITUR EXPORT EXCEL (RAW, 15 MENIT, 1 JAM) UNTUK PENELITIAN
+// 4. FITUR EXPORT EXCEL (SUPER RAPI UNTUK KTI)
 // =========================================================================
 
-// Dekode Waktu Asli dari Push ID Firebase
 const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 function getRealTimeFromFirebaseKey(id) {
     let time = 0;
@@ -83,7 +134,6 @@ function getRealTimeFromFirebaseKey(id) {
     return new Date(time);
 }
 
-// Format Waktu ke bentuk yang rapi di Excel
 function formatTanggalWaktu(date) {
     let d = date.getDate().toString().padStart(2, '0');
     let m = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -93,11 +143,10 @@ function formatTanggalWaktu(date) {
     return `${d}/${m}/${y} ${jam}:${mnt}`;
 }
 
-// Fungsi Tarik dan Rakit Data
 function downloadExcel(mode) {
     alert("Sistem sedang merakit data Excel... Silakan tunggu sebentar.");
     
-    // Mencegah browser hang, ambil 10.000 data terakhir saja
+    // Ambil max 10.000 data agar laptop tidak hang
     db.ref('/logs').limitToLast(10000).once('value').then(snapshot => {
         let dataMentah = [];
         
@@ -109,29 +158,32 @@ function downloadExcel(mode) {
         });
 
         if(dataMentah.length === 0) {
-            alert("Belum ada data history yang tersimpan di database.");
+            alert("Belum ada data history yang tersimpan.");
             return;
         }
 
         let dataExcel = [];
 
-        // MODE: MENTAH
         if (mode === 'raw') {
+            // Gunakan +parseFloat agar Excel membacanya sebagai Angka Asli (Bisa di-sum/grafik di Excel)
             dataExcel = dataMentah.map(r => ({
                 "Waktu (WIB)": formatTanggalWaktu(r.waktuAsli),
-                "MQ-135 Indoor (PPM)": parseFloat(r.mq135_indoor || 0).toFixed(2),
-                "MQ-7 Indoor (PPM)": parseFloat(r.mq7_indoor || 0).toFixed(2),
-                "PM2.5 Indoor (ug/m3)": r.pm25_indoor || 0,
-                "PM10 Indoor (ug/m3)": r.pm10_indoor || 0,
-                "MQ-135 Outdoor (PPM)": parseFloat(r.mq135_outdoor || 0).toFixed(2),
-                "MQ-7 Outdoor (PPM)": parseFloat(r.mq7_outdoor || 0).toFixed(2),
-                "PM2.5 Outdoor (ug/m3)": r.pm25_outdoor || 0,
-                "PM10 Outdoor (ug/m3)": r.pm10_outdoor || 0
+                "Indoor MQ-135 (PPM)": +(parseFloat(r.mq135_indoor || 0).toFixed(2)),
+                "Indoor MQ-7 (PPM)": +(parseFloat(r.mq7_indoor || 0).toFixed(2)),
+                "Indoor PM2.5 (ug/m3)": +(r.pm25_indoor || 0),
+                "Indoor PM10 (ug/m3)": +(r.pm10_indoor || 0),
+                "Outdoor MQ-135 (PPM)": +(parseFloat(r.mq135_outdoor || 0).toFixed(2)),
+                "Outdoor MQ-7 (PPM)": +(parseFloat(r.mq7_outdoor || 0).toFixed(2)),
+                "Outdoor PM2.5 (ug/m3)": +(r.pm25_outdoor || 0),
+                "Outdoor PM10 (ug/m3)": +(r.pm10_outdoor || 0)
             }));
         } 
-        // MODE: RATA-RATA
         else {
-            let intervalMs = (mode === '15min') ? (15 * 60 * 1000) : (60 * 60 * 1000);
+            let intervalMs;
+            if (mode === '15min') intervalMs = 15 * 60 * 1000;
+            else if (mode === '1hour') intervalMs = 60 * 60 * 1000;
+            else if (mode === '2hour') intervalMs = 2 * 60 * 60 * 1000; // Tambahan 2 Jam
+
             let grupWaktu = {};
 
             dataMentah.forEach(r => {
@@ -155,31 +207,31 @@ function downloadExcel(mode) {
 
             for (let waktu in grupWaktu) {
                 let g = grupWaktu[waktu]; let c = g.count; 
+                // Tanda + di depan memastikan formatnya adalah Number di dalam Excel
                 dataExcel.push({
-                    "Waktu Blok (WIB)": waktu,
-                    "Total Sampel": c,
-                    "Rata-rata MQ-135 Indoor": +(g.mq135_in / c).toFixed(2),
-                    "Rata-rata MQ-7 Indoor": +(g.mq7_in / c).toFixed(2),
-                    "Rata-rata PM2.5 Indoor": +(g.pm25_in / c).toFixed(1),
-                    "Rata-rata PM10 Indoor": +(g.pm10_in / c).toFixed(1),
-                    "Rata-rata MQ-135 Outdoor": +(g.mq135_out / c).toFixed(2),
-                    "Rata-rata MQ-7 Outdoor": +(g.mq7_out / c).toFixed(2),
-                    "Rata-rata PM2.5 Outdoor": +(g.pm25_out / c).toFixed(1),
-                    "Rata-rata PM10 Outdoor": +(g.pm10_out / c).toFixed(1)
+                    "Waktu Rentang (WIB)": waktu,
+                    "Total Sampel Data": c,
+                    "Rata-rata Indoor MQ-135": +(g.mq135_in / c).toFixed(2),
+                    "Rata-rata Indoor MQ-7": +(g.mq7_in / c).toFixed(2),
+                    "Rata-rata Indoor PM2.5": +(g.pm25_in / c).toFixed(1),
+                    "Rata-rata Indoor PM10": +(g.pm10_in / c).toFixed(1),
+                    "Rata-rata Outdoor MQ-135": +(g.mq135_out / c).toFixed(2),
+                    "Rata-rata Outdoor MQ-7": +(g.mq7_out / c).toFixed(2),
+                    "Rata-rata Outdoor PM2.5": +(g.pm25_out / c).toFixed(1),
+                    "Rata-rata Outdoor PM10": +(g.pm10_out / c).toFixed(1)
                 });
             }
         }
 
-        // Susun file Excel dan Download Otomatis
         const worksheet = XLSX.utils.json_to_sheet(dataExcel);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Data_Pemantauan");
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data_Penelitian");
 
-        let labelFile = (mode === 'raw') ? 'SemuaData' : (mode === '15min') ? 'Per15Menit' : 'Per1Jam';
-        let namaFile = `Rekap_AirQuality_${labelFile}.xlsx`;
+        let labelFile = (mode === 'raw') ? 'Mentah' : (mode === '15min') ? '15Menit' : (mode === '1hour') ? '1Jam' : '2Jam';
+        let namaFile = `Data_NanoBanana_${labelFile}.xlsx`;
         XLSX.writeFile(workbook, namaFile);
 
     }).catch(error => {
-        alert("Gagal mengambil data dari Firebase. Pastikan internet Anda lancar. Error: " + error);
+        alert("Gagal mengambil data dari Firebase. Error: " + error);
     });
 }
