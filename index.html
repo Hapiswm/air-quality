@@ -12,12 +12,15 @@
 </head>
 <body>
     <div class="topbar">
-        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> AIR QUALITY</div>
+        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
         <div class="topbar-menu">
             <a href="index.html" class="active">Dashboard</a>
             <a href="speedometer.html">Speedometer</a>
             <a href="grafik.html">Grafik</a>
             <a href="history.html">History</a>
+            <button id="btn-login" onclick="toggleLogin()" style="background: rgba(250, 204, 21, 0.2); border: 1px solid var(--accent-yellow); color: var(--accent-yellow); padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-left: 15px; font-weight: bold; transition: 0.3s;">
+                <i class="fa-solid fa-lock"></i> Login Admin
+            </button>
         </div>
     </div>
 
@@ -54,8 +57,8 @@
         </div>
 
         <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
-            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Indoor)</div><div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div></div>
-            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Indoor)</div><div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Indoor)</div><div class="chart-box" style="height: 250px; position: relative;"><canvas id="gasChart"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Indoor)</div><div class="chart-box" style="height: 250px; position: relative;"><canvas id="particleChart"></canvas></div></div>
         </div>
     </div>
     
