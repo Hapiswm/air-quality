@@ -9,17 +9,17 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        /* Desain Presisi Speedometer Mockup */
-        .speedo-card { text-align: center; padding: 30px 20px 20px 20px; position: relative; background: #1e293b; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .speedo-title { font-weight: 800; margin-bottom: 20px; color: #f8fafc; font-size: 16px; }
-        .speedo-container { position: relative; width: 100%; max-width: 280px; margin: 0 auto; }
-        .speedo-svg { width: 100%; display: block; overflow: hidden; }
-        .speedo-val-wrap { margin-top: -15px; display: flex; flex-direction: column; align-items: center; }
-        .speedo-val { font-size: 38px; font-weight: 900; color: #f8fafc; font-family: 'Segoe UI', Tahoma, sans-serif; letter-spacing: -1px; }
-        .speedo-unit { font-size: 16px; font-weight: normal; color: #9ca3af; margin-left: 4px; }
-        .speedo-emoji { font-size: 28px; margin: 5px 0; }
-        .speedo-stat { font-size: 13px; font-weight: 800; text-transform: uppercase; }
-        .speedo-needle { transform-origin: 120px 120px; transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); transform: rotate(-90deg); }
+        .speedo-card { text-align: center; padding: 25px 15px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }
+        .speedo-title { font-weight: 800; margin-bottom: 15px; color: #f8fafc; font-size: 15px; }
+        .speedo-container { position: relative; width: 100%; max-width: 260px; margin: 0 auto; }
+        .speedo-svg { width: 100%; display: block; overflow: visible; }
+        .speedo-val-wrap { margin-top: -10px; display: flex; flex-direction: column; align-items: center; min-height: 100px; }
+        .speedo-val { font-size: 36px; font-weight: 900; color: #f8fafc; font-family: 'Segoe UI', sans-serif; }
+        .speedo-unit { font-size: 14px; font-weight: normal; color: #9ca3af; }
+        .speedo-emoji { font-size: 32px; margin: 5px 0; line-height: 1; }
+        .speedo-stat { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* Jarum Berputar di tengah bawah (120, 120) */
+        .speedo-needle { transform-origin: 120px 120px; transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
     </style>
 </head>
 <body>
@@ -36,70 +36,51 @@
     <div class="page-wrap">
         <div class="page-header" style="text-align: center;">
             <h1><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
-            <p>Visualisasi presisi gaya meteran kendaraan untuk pantauan kualitas udara.</p>
+            <p>Visualisasi presisi sesuai standar kualitas udara (ISPU).</p>
         </div>
 
         <div class="section-title" style="color: var(--accent-yellow); margin-top: 20px;"><i class="fa-solid fa-house"></i> Area Indoor</div>
-        <div class="card-grid">
-            
-            <script>
-                function renderSpeedo(id, title) {
-                    document.write(`
-                    <div class="speedo-card" id="card-${id}">
-                        <div class="speedo-title">${title}</div>
-                        <div class="speedo-container">
-                            <svg viewBox="0 0 240 140" class="speedo-svg">
-                                <defs>
-                                    <circle id="band-${id}" cx="120" cy="120" r="70" fill="none" stroke-width="16" />
-                                </defs>
-                                <use href="#band-${id}" stroke="#22c55e" stroke-dasharray="41.5 400" transform="rotate(180, 120, 120)" />
-                                <use href="#band-${id}" stroke="#eab308" stroke-dasharray="41.5 400" transform="rotate(216, 120, 120)" />
-                                <use href="#band-${id}" stroke="#ef4444" stroke-dasharray="41.5 400" transform="rotate(252, 120, 120)" />
-                                <use href="#band-${id}" stroke="#a855f7" stroke-dasharray="41.5 400" transform="rotate(288, 120, 120)" />
-                                <use href="#band-${id}" stroke="#78350f" stroke-dasharray="41.5 400" transform="rotate(324, 120, 120)" />
-                                
-                                <use href="#band-${id}" stroke="#1e293b" stroke-dasharray="2 6.79" transform="rotate(180, 120, 120)" />
-                                <rect x="0" y="120" width="240" height="20" fill="#1e293b" />
-                                
-                                <text x="42" y="115" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">0</text>
-                                <text x="55" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">50</text>
-                                <text x="85" y="50" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">100</text>
-                                <text x="120" y="38" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">150</text>
-                                <text x="155" y="50" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">200</text>
-                                <text x="185" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">300</text>
-                                <text x="198" y="115" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">400</text>
-                                
-                                <g id="needle-${id}" class="speedo-needle">
-                                    <polygon points="116,120 124,120 120,40" fill="#3b82f6" />
-                                </g>
-                            </svg>
-                            <div class="speedo-val-wrap">
-                                <div id="val-${id}" class="speedo-val">0<span class="speedo-unit">ppm</span></div>
-                                <div id="emoji-${id}" class="speedo-emoji">⏳</div>
-                                <div id="stat-${id}" class="speedo-stat" style="color:#9ca3af;">MENUNGGU</div>
-                            </div>
-                        </div>
-                    </div>
-                    `);
-                }
-                renderSpeedo('mq135-in', 'MQ-135 Indoor');
-                renderSpeedo('mq7-in', 'MQ-7 Indoor');
-                renderSpeedo('pm25-in', 'PM 2.5 Indoor');
-                renderSpeedo('pm10-in', 'PM 10 Indoor');
-            </script>
-        </div>
+        <div class="card-grid" id="grid-indoor"></div>
 
         <div class="section-title" style="color: var(--accent-yellow); margin-top: 30px;"><i class="fa-solid fa-tree"></i> Area Outdoor</div>
-        <div class="card-grid">
-            <script>
-                renderSpeedo('mq135-out', 'MQ-135 Outdoor');
-                renderSpeedo('mq7-out', 'MQ-7 Outdoor');
-                renderSpeedo('pm25-out', 'PM 2.5 Outdoor');
-                renderSpeedo('pm10-out', 'PM 10 Outdoor');
-            </script>
-        </div>
+        <div class="card-grid" id="grid-outdoor"></div>
     </div>
-    
+
+    <script>
+        // Otomasi Render agar HTML bersih
+        function createSpeedoHTML(id, title) {
+            return `
+            <div class="speedo-card">
+                <div class="speedo-title">${title}</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 140" class="speedo-svg">
+                        <defs><circle id="b-${id}" cx="120" cy="120" r="75" fill="none" stroke-width="16" /></defs>
+                        <use href="#b-${id}" stroke="#22c55e" stroke-dasharray="47 470" transform="rotate(180 120 120)" />
+                        <use href="#b-${id}" stroke="#eab308" stroke-dasharray="47 470" transform="rotate(216 120 120)" />
+                        <use href="#b-${id}" stroke="#ef4444" stroke-dasharray="47 470" transform="rotate(252 120 120)" />
+                        <use href="#b-${id}" stroke="#a855f7" stroke-dasharray="47 470" transform="rotate(288 120 120)" />
+                        <use href="#b-${id}" stroke="#78350f" stroke-dasharray="47 470" transform="rotate(324 120 120)" />
+                        <use href="#b-${id}" stroke="#1e293b" stroke-dasharray="2 7.4" transform="rotate(180 120 120)" />
+                        <text x="35" y="118" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">0</text>
+                        <text x="50" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">50</text>
+                        <text x="85" y="48" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">100</text>
+                        <text x="120" y="36" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">150</text>
+                        <text x="155" y="48" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">200</text>
+                        <text x="190" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">300</text>
+                        <text x="205" y="118" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-${id}" class="speedo-needle"><polygon points="115,120 125,120 120,35" fill="#3b82f6" /></g>
+                    </svg>
+                    <div class="speedo-val-wrap">
+                        <div id="val-${id}" class="speedo-val">--</div>
+                        <div id="emoji-${id}" class="speedo-emoji">⌛</div>
+                        <div id="stat-${id}" class="speedo-stat">MEMUAT...</div>
+                    </div>
+                </div>
+            </div>`;
+        }
+        document.getElementById('grid-indoor').innerHTML = createSpeedoHTML('mq135-in','MQ-135 Indoor')+createSpeedoHTML('mq7-in','MQ-7 Indoor')+createSpeedoHTML('pm25-in','PM 2.5 Indoor')+createSpeedoHTML('pm10-in','PM 10 Indoor');
+        document.getElementById('grid-outdoor').innerHTML = createSpeedoHTML('mq135-out','MQ-135 Outdoor')+createSpeedoHTML('mq7-out','MQ-7 Outdoor')+createSpeedoHTML('pm25-out','PM 2.5 Outdoor')+createSpeedoHTML('pm10-out','PM 10 Outdoor');
+    </script>
     <script src="assets/js/app.js"></script>
 </body>
 </html>
