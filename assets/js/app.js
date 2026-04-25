@@ -67,7 +67,7 @@ db.ref('/kontrol/sistem').on('value', (snapshot) => {
 });
 
 // =========================================================================
-// 3. GRAFIK DENGAN PRE-LOAD HISTORY
+// 3. GRAFIK (PRE-LOAD HISTORY)
 // =========================================================================
 const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 function getRealTimeFromFirebaseKey(id) {
@@ -112,17 +112,11 @@ function initDashboardCharts() {
     Chart.defaults.color = '#cbd5e1';
     
     gasChart = new Chart(document.getElementById('gasChart').getContext('2d'), {
-        type: 'line', data: { labels: [], datasets: [
-            { label: 'MQ-135 (PPM)', borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', data: [], fill: true, tension: 0.4 },
-            { label: 'MQ-7 (PPM)', borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', data: [], fill: true, tension: 0.4 }
-        ]}, options: { responsive: true, maintainAspectRatio: false }
+        type: 'line', data: { labels: [], datasets: [{ label: 'MQ-135 (PPM)', borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', data: [], fill: true, tension: 0.4 }, { label: 'MQ-7 (PPM)', borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', data: [], fill: true, tension: 0.4 }]}, options: { responsive: true, maintainAspectRatio: false }
     });
 
     particleChart = new Chart(document.getElementById('particleChart').getContext('2d'), {
-        type: 'line', data: { labels: [], datasets: [
-            { label: 'PM 2.5', borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', data: [], fill: true, tension: 0.4 },
-            { label: 'PM 10', borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', data: [], fill: true, tension: 0.4 }
-        ]}, options: { responsive: true, maintainAspectRatio: false }
+        type: 'line', data: { labels: [], datasets: [{ label: 'PM 2.5', borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', data: [], fill: true, tension: 0.4 }, { label: 'PM 10', borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', data: [], fill: true, tension: 0.4 }]}, options: { responsive: true, maintainAspectRatio: false }
     });
 
     fetchHistoricalDataForCharts({gas: gasChart, part: particleChart}, true);
@@ -135,10 +129,7 @@ function initComparisonCharts() {
     const commonOpts = { responsive: true, maintainAspectRatio: false };
     const createCompChart = (id) => {
         return new Chart(document.getElementById(id).getContext('2d'), {
-            type: 'line', data: { labels: [], datasets: [
-                { label: 'INDOOR', borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', data: [], fill: true, tension: 0.4 },
-                { label: 'OUTDOOR', borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', data: [], fill: true, tension: 0.4 }
-            ]}, options: commonOpts
+            type: 'line', data: { labels: [], datasets: [{ label: 'INDOOR', borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', data: [], fill: true, tension: 0.4 }, { label: 'OUTDOOR', borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', data: [], fill: true, tension: 0.4 }]}, options: commonOpts
         });
     };
 
@@ -170,7 +161,9 @@ function getISPUStatus(val) {
 
 function updateGaugeAndCard(idPrefix, val, isDebu) {
     let numVal = parseFloat(val || 0);
-    let displayVal = (numVal % 1 !== 0) ? numVal.toFixed(1) : numVal;
+    
+    // Tampilan angka: jika gas (ppm) tampilkan 2 desimal, jika debu tampilkan tanpa desimal
+    let displayVal = isDebu ? Math.round(numVal) : ((numVal % 1 !== 0) ? numVal.toFixed(2) : numVal);
     let ispu = getISPUStatus(numVal);
 
     // Seleksi Elemen
@@ -181,25 +174,24 @@ function updateGaugeAndCard(idPrefix, val, isDebu) {
 
     // Update Teks Angka
     if (elVal) {
-        let unit = isDebu ? "µg/m³" : "PPM";
-        // Berjalan baik untuk dashboard maupun speedo
-        elVal.innerHTML = `${displayVal} <span style="font-size: 14px; font-weight: normal; color: #9ca3af;">${unit}</span>`;
+        let unit = isDebu ? "µg/m³" : "ppm";
+        elVal.innerHTML = `${displayVal} <span class="speedo-unit">${unit}</span>`;
     }
     
     // Update Emoji & Teks Status (Posisi Tengah)
     if (elStat) { 
-        elStat.innerHTML = `<div style="font-size: 32px; margin-bottom: 5px;">${ispu.emoji}</div><div style="font-weight: 800; font-size: 14px; color: ${ispu.color}; text-transform: uppercase;">${ispu.text}</div>`; 
+        elStat.innerHTML = `<div style="font-size: 28px; margin-bottom: 2px;">${ispu.emoji}</div><div style="font-size: 13px; font-weight: 800; color: ${ispu.color}; text-transform: uppercase;">${ispu.text}</div>`; 
     }
 
-    // Update Warna Kotak (Border & Glow)
-    if (elCard) { 
+    // Update Warna Kotak (Dashboard Regular Card)
+    if (elCard && !needle) { 
         elCard.style.borderTop = `4px solid ${ispu.color}`; 
         elCard.style.boxShadow = `0 4px 15px ${ispu.color}33`; 
     }
 
-    // Update Animasi Jarum (Khusus Speedometer)
+    // Update Animasi Jarum Matematika (Khusus Speedometer CSS)
     if (needle) {
-        let maxScale = 400; // Skala maksimal seperti di gambar
+        let maxScale = 400; // Skala maksimal seperti di gambar mockup (0 - 400)
         let clamped = Math.min(Math.max(numVal, 0), maxScale);
         let angle = -90 + (clamped / maxScale) * 180;
         needle.style.transform = `rotate(${angle}deg)`;
@@ -213,7 +205,7 @@ db.ref('/sensorData').on('value', (snapshot) => {
         let statText = document.getElementById('status-text');
         if(connEl && statText) { connEl.className = 'status-badge online'; statText.innerText = 'TERHUBUNG (LIVE)'; }
 
-        // Update Dashboard Utama (id nya pakai garis bawah "_")
+        // Update Dashboard Utama (id pakai garis bawah "_")
         updateGaugeAndCard('mq135_indoor', data.mq135_indoor, false);
         updateGaugeAndCard('mq7_indoor', data.mq7_indoor, false);
         updateGaugeAndCard('pm25_indoor', data.pm25_indoor, true);
@@ -224,7 +216,7 @@ db.ref('/sensorData').on('value', (snapshot) => {
         updateGaugeAndCard('pm25_outdoor', data.pm25_outdoor, true);
         updateGaugeAndCard('pm10_outdoor', data.pm10_outdoor, true);
         
-        // Update Halaman Speedometer (id nya pakai strip "-")
+        // Update Halaman Speedometer (id pakai strip "-")
         updateGaugeAndCard('mq135-in', data.mq135_indoor, false);
         updateGaugeAndCard('mq7-in', data.mq7_indoor, false);
         updateGaugeAndCard('pm25-in', data.pm25_indoor, true);
@@ -262,7 +254,7 @@ db.ref('/sensorData').on('value', (snapshot) => {
 });
 
 // =========================================================================
-// 5. HISTORY TABLE & EXCEL (TIDAK ADA PERUBAHAN)
+// 5. HISTORY TABLE & EXCEL 
 // =========================================================================
 function formatTanggalWaktu(date) { let d=date.getDate().toString().padStart(2,'0'); let m=(date.getMonth()+1).toString().padStart(2,'0'); return `${d}/${m}/${date.getFullYear()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`; }
 function initHistoryTable() {
