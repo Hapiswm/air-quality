@@ -10,7 +10,6 @@ if (!firebase.apps.length) {
 }
 const db = firebase.database();
 
-// Variabel Global untuk Grafik
 let gasChart, particleChart;
 const maxDataPoints = 15;
 
@@ -24,9 +23,8 @@ window.onload = () => {
         if(panel) panel.style.display = 'block';
         if(btnLogin) btnLogin.innerHTML = '<i class="fa-solid fa-sign-out-alt"></i> Logout Admin';
     }
-
-    // Inisialisasi Grafik jika elemen canvas ada di halaman
     if(document.getElementById('gasChart')) initCharts();
+    initHistoryTable(); // Panggil fungsi pembuat tabel
 };
 
 function toggleLogin() {
@@ -51,7 +49,6 @@ function toggleLogin() {
     }
 }
 
-// Fungsi Kontrol Alat
 function setAlat(status) {
     db.ref('/kontrol/sistem').set(status);
 }
@@ -73,7 +70,7 @@ db.ref('/kontrol/sistem').on('value', (snapshot) => {
 });
 
 // =========================================================================
-// 3. GRAFIK LIVE & UPDATE DASHBOARD
+// 3. GRAFIK LIVE & UPDATE DASHBOARD (DENGAN SEMUA STATUS SENSOR)
 // =========================================================================
 function initCharts() {
     const ctxGas = document.getElementById('gasChart').getContext('2d');
@@ -114,9 +111,17 @@ function safeUpdateDOM(id, val, isStatus = false) {
     }
 }
 
-function hitungStatus(pm25) {
-    if (pm25 <= 15) return "BAIK";
-    if (pm25 <= 55) return "SEDANG";
+// Penentuan Status Debu (PM2.5 & PM10)
+function hitungStatusDebu(val) {
+    if (val <= 50) return "BAIK";
+    if (val <= 150) return "SEDANG";
+    return "BERBAHAYA";
+}
+
+// Penentuan Status Gas (MQ135 & MQ7)
+function hitungStatusGas(ppm) {
+    if (ppm <= 100) return "BAIK";
+    if (ppm <= 250) return "SEDANG";
     return "BERBAHAYA";
 }
 
@@ -130,18 +135,31 @@ db.ref('/sensorData').on('value', (snapshot) => {
             statText.innerText = 'TERHUBUNG (LIVE)';
         }
 
-        // Update Angka
+        // --- UPDATE INDOOR DENGAN STATUS ---
         safeUpdateDOM('val-mq135_indoor', data.mq135_indoor);
+        safeUpdateDOM('stat-mq135_indoor', hitungStatusGas(data.mq135_indoor), true);
+        
         safeUpdateDOM('val-mq7_indoor', data.mq7_indoor);
+        safeUpdateDOM('stat-mq7_indoor', hitungStatusGas(data.mq7_indoor), true);
+        
         safeUpdateDOM('val-pm25_indoor', data.pm25_indoor);
+        safeUpdateDOM('stat-pm25_indoor', hitungStatusDebu(data.pm25_indoor), true);
+        
         safeUpdateDOM('val-pm10_indoor', data.pm10_indoor);
-        safeUpdateDOM('stat-pm25_indoor', hitungStatus(data.pm25_indoor), true);
+        safeUpdateDOM('stat-pm10_indoor', hitungStatusDebu(data.pm10_indoor), true);
 
+        // --- UPDATE OUTDOOR DENGAN STATUS ---
         safeUpdateDOM('val-mq135_outdoor', data.mq135_outdoor);
+        safeUpdateDOM('stat-mq135_outdoor', hitungStatusGas(data.mq135_outdoor), true);
+        
         safeUpdateDOM('val-mq7_outdoor', data.mq7_outdoor);
+        safeUpdateDOM('stat-mq7_outdoor', hitungStatusGas(data.mq7_outdoor), true);
+        
         safeUpdateDOM('val-pm25_outdoor', data.pm25_outdoor);
+        safeUpdateDOM('stat-pm25_outdoor', hitungStatusDebu(data.pm25_outdoor), true);
+        
         safeUpdateDOM('val-pm10_outdoor', data.pm10_outdoor);
-        safeUpdateDOM('stat-pm25_outdoor', hitungStatus(data.pm25_outdoor), true);
+        safeUpdateDOM('stat-pm10_outdoor', hitungStatusDebu(data.pm10_outdoor), true);
 
         // Update Grafik Live
         if(gasChart && particleChart) {
@@ -156,23 +174,56 @@ db.ref('/sensorData').on('value', (snapshot) => {
             particleChart.data.datasets[1].data.push(data.pm10_indoor);
 
             if(gasChart.data.labels.length > maxDataPoints) {
-                gasChart.data.labels.shift();
-                gasChart.data.datasets[0].data.shift();
-                gasChart.data.datasets[1].data.shift();
+                gasChart.data.labels.shift(); gasChart.data.datasets[0].data.shift(); gasChart.data.datasets[1].data.shift();
             }
             if(particleChart.data.labels.length > maxDataPoints) {
-                particleChart.data.labels.shift();
-                particleChart.data.datasets[0].data.shift();
-                particleChart.data.datasets[1].data.shift();
+                particleChart.data.labels.shift(); particleChart.data.datasets[0].data.shift(); particleChart.data.datasets[1].data.shift();
             }
-            gasChart.update();
-            particleChart.update();
+            gasChart.update(); particleChart.update();
         }
     }
 });
 
+
 // =========================================================================
-// 4. FITUR EXPORT EXCEL
+// 4. FITUR TABEL PRATINJAU HISTORY (LIVE DI WEB)
+// =========================================================================
+function initHistoryTable() {
+    let tbody = document.getElementById('history-table-body');
+    if (!tbody) return; // Jika bukan di halaman history, batalkan
+
+    // Ambil 10 data terakhir dari folder /logs secara live
+    db.ref('/logs').limitToLast(10).on('value', (snapshot) => {
+        tbody.innerHTML = '';
+        if (!snapshot.exists()) {
+            tbody.innerHTML = '<tr><td colspan="7">Belum ada data history yang tersimpan.</td></tr>';
+            return;
+        }
+
+        let rowsHTML = [];
+        snapshot.forEach(child => {
+            let r = child.val();
+            let date = formatTanggalWaktu(getRealTimeFromFirebaseKey(child.key));
+            
+            // Masukkan data baru ke urutan paling atas (unshift)
+            rowsHTML.unshift(`
+                <tr>
+                    <td>${date}</td>
+                    <td>${parseFloat(r.mq135_indoor||0).toFixed(1)}</td>
+                    <td>${parseFloat(r.mq7_indoor||0).toFixed(1)}</td>
+                    <td>${r.pm25_indoor||0}</td>
+                    <td>${parseFloat(r.mq135_outdoor||0).toFixed(1)}</td>
+                    <td>${parseFloat(r.mq7_outdoor||0).toFixed(1)}</td>
+                    <td>${r.pm25_outdoor||0}</td>
+                </tr>
+            `);
+        });
+        tbody.innerHTML = rowsHTML.join('');
+    });
+}
+
+// =========================================================================
+// 5. FITUR EXPORT EXCEL
 // =========================================================================
 const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 function getRealTimeFromFirebaseKey(id) {
