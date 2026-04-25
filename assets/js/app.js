@@ -151,69 +151,50 @@ function initComparisonCharts() {
 // =========================================================================
 // 4. LOGIKA EMOJI ISPU & UPDATE KARTU (DASHBOARD + SPEEDO)
 // =========================================================================
-// Mengikuti warna dan teks persis seperti gambar mockup
 function getISPUStatus(val) {
     if (val <= 50) return { text: "BAIK", color: "#22c55e", emoji: "😃" }; 
     if (val <= 100) return { text: "SEDANG", color: "#eab308", emoji: "😐" }; 
-    if (val <= 200) return { text: "TIDAK SEHAT", color: "#ef4444", emoji: "😷" }; 
-    if (val <= 300) return { text: "SANGAT TIDAK SEHAT", color: "#a855f7", emoji: "🤢" }; 
+    if (val <= 199) return { text: "TIDAK SEHAT", color: "#ef4444", emoji: "😷" }; 
+    if (val <= 299) return { text: "SANGAT TIDAK SEHAT", color: "#a855f7", emoji: "🤢" }; 
     return { text: "BERBAHAYA", color: "#78350f", emoji: "☠️" }; 
-}
-
-// Rumus sakti agar rotasi jarum tepat sasaran di skala gambar (Non-Linear Scale)
-function valueToAngle(val) {
-    let v = Math.max(0, Math.min(val, 400));
-    let angle = 0;
-    if (v <= 50) angle = (v / 50) * 36;
-    else if (v <= 100) angle = 36 + ((v - 50) / 50) * 36;
-    else if (v <= 200) angle = 72 + ((v - 100) / 100) * 36;
-    else if (v <= 300) angle = 108 + ((v - 200) / 100) * 36;
-    else angle = 144 + ((v - 300) / 100) * 36;
-    return -90 + angle; 
 }
 
 function updateGaugeAndCard(idPrefix, val, isDebu) {
     let numVal = parseFloat(val || 0);
+    
+    // Tampilan angka: jika gas (ppm) tampilkan 2 desimal, jika debu tampilkan tanpa desimal
     let displayVal = isDebu ? Math.round(numVal) : ((numVal % 1 !== 0) ? numVal.toFixed(2) : numVal);
     let ispu = getISPUStatus(numVal);
-    let unit = isDebu ? "µg/m³" : "ppm";
 
-    // 1. UPDATE KARTU DASHBOARD UTAMA
-    let elValCard = document.getElementById(`val-${idPrefix}`);
-    let elStatCard = document.getElementById(`stat-${idPrefix}`);
+    // Seleksi Elemen
+    let elVal = document.getElementById(`val-${idPrefix}`);
+    let elStat = document.getElementById(`stat-${idPrefix}`);
     let elCard = document.getElementById(`card-${idPrefix}`);
+    let needle = document.getElementById(`needle-${idPrefix}`);
+
+    // Update Teks Angka
+    if (elVal) {
+        let unit = isDebu ? "µg/m³" : "ppm";
+        elVal.innerHTML = `${displayVal} <span class="speedo-unit">${unit}</span>`;
+    }
     
-    if(elValCard && !document.getElementById(`needle-${idPrefix}`)) {
-        elValCard.innerText = displayVal;
+    // Update Emoji & Teks Status (Posisi Tengah)
+    if (elStat) { 
+        elStat.innerHTML = `<div style="font-size: 28px; margin-bottom: 2px;">${ispu.emoji}</div><div style="font-size: 13px; font-weight: 800; color: ${ispu.color}; text-transform: uppercase;">${ispu.text}</div>`; 
     }
-    if(elStatCard && !document.getElementById(`needle-${idPrefix}`)) { 
-        elStatCard.innerHTML = `<div style="font-size: 26px; margin-bottom: 5px;">${ispu.emoji}</div><div style="font-weight:bold; font-size:13px; text-transform:uppercase;">${ispu.text}</div>`; 
-        elStatCard.style.color = ispu.color; 
-    }
-    if(elCard && !document.getElementById(`needle-${idPrefix}`)) { 
+
+    // Update Warna Kotak (Dashboard Regular Card)
+    if (elCard && !needle) { 
         elCard.style.borderTop = `4px solid ${ispu.color}`; 
         elCard.style.boxShadow = `0 4px 15px ${ispu.color}33`; 
     }
 
-    // 2. UPDATE HALAMAN SPEEDOMETER (Animasi Jarum & Emoji Tengah)
-    let needleSVG = document.getElementById(`needle-${idPrefix}`);
-    let valSpeedo = document.getElementById(`val-${idPrefix}`);
-    let emojiSpeedo = document.getElementById(`emoji-${idPrefix}`);
-    let statSpeedo = document.getElementById(`stat-${idPrefix}`);
-
-    if (needleSVG) {
-        valSpeedo.innerHTML = `${displayVal} <span class="speedo-unit">${unit}</span>`;
-        emojiSpeedo.innerHTML = ispu.emoji;
-        statSpeedo.innerText = ispu.text;
-        statSpeedo.style.color = ispu.color;
-        
-        // Memutar jarum sesuai rumus matematika gambar
-        let angle = valueToAngle(numVal);
-        needleSVG.style.transform = `rotate(${angle}deg)`;
-        
-        // Memberi border glow pada kartu speedometer
-        let cardSpeedo = document.getElementById(`card-${idPrefix}`);
-        cardSpeedo.style.borderTop = `4px solid ${ispu.color}`; 
+    // Update Animasi Jarum Matematika (Khusus Speedometer CSS)
+    if (needle) {
+        let maxScale = 400; // Skala maksimal seperti di gambar mockup (0 - 400)
+        let clamped = Math.min(Math.max(numVal, 0), maxScale);
+        let angle = -90 + (clamped / maxScale) * 180;
+        needle.style.transform = `rotate(${angle}deg)`;
     }
 }
 
@@ -224,21 +205,23 @@ db.ref('/sensorData').on('value', (snapshot) => {
         let statText = document.getElementById('status-text');
         if(connEl && statText) { connEl.className = 'status-badge online'; statText.innerText = 'TERHUBUNG (LIVE)'; }
 
-        // Update Dashboard Utama 
+        // Update Dashboard Utama (id pakai garis bawah "_")
         updateGaugeAndCard('mq135_indoor', data.mq135_indoor, false);
         updateGaugeAndCard('mq7_indoor', data.mq7_indoor, false);
         updateGaugeAndCard('pm25_indoor', data.pm25_indoor, true);
         updateGaugeAndCard('pm10_indoor', data.pm10_indoor, true);
+        
         updateGaugeAndCard('mq135_outdoor', data.mq135_outdoor, false);
         updateGaugeAndCard('mq7_outdoor', data.mq7_outdoor, false);
         updateGaugeAndCard('pm25_outdoor', data.pm25_outdoor, true);
         updateGaugeAndCard('pm10_outdoor', data.pm10_outdoor, true);
         
-        // Update Halaman Speedometer CSS
+        // Update Halaman Speedometer (id pakai strip "-")
         updateGaugeAndCard('mq135-in', data.mq135_indoor, false);
         updateGaugeAndCard('mq7-in', data.mq7_indoor, false);
         updateGaugeAndCard('pm25-in', data.pm25_indoor, true);
         updateGaugeAndCard('pm10-in', data.pm10_indoor, true);
+        
         updateGaugeAndCard('mq135-out', data.mq135_outdoor, false);
         updateGaugeAndCard('mq7-out', data.mq7_outdoor, false);
         updateGaugeAndCard('pm25-out', data.pm25_outdoor, true);
@@ -271,7 +254,7 @@ db.ref('/sensorData').on('value', (snapshot) => {
 });
 
 // =========================================================================
-// 6. HISTORY TABLE & EXCEL (TIDAK ADA PERUBAHAN)
+// 5. HISTORY TABLE & EXCEL 
 // =========================================================================
 function formatTanggalWaktu(date) { let d=date.getDate().toString().padStart(2,'0'); let m=(date.getMonth()+1).toString().padStart(2,'0'); return `${d}/${m}/${date.getFullYear()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`; }
 function initHistoryTable() {
