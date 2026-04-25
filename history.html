@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        /* Desain Tabel History */
         .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; color: #e2e8f0; font-size: 14px; }
         .data-table th, .data-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
         .data-table th { background: rgba(0,0,0,0.3); color: var(--accent-yellow); font-weight: bold; }
@@ -19,7 +18,7 @@
 </head>
 <body>
     <div class="topbar">
-        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
+        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> AIR QUALITY</div>
         <div class="topbar-menu">
             <a href="index.html">Dashboard</a>
             <a href="speedometer.html">Speedometer</a>
@@ -32,7 +31,7 @@
         <div class="page-header">
             <div>
                 <h1><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Data</h1>
-                <p>Unduh dan pantau rekap data penelitian.</p>
+                <p>Unduh rekap data pemantauan untuk analisis penelitian.</p>
             </div>
         </div>
 
@@ -65,13 +64,15 @@
                         <th>MQ-135 (In)</th>
                         <th>MQ-7 (In)</th>
                         <th>PM 2.5 (In)</th>
+                        <th>PM 10 (In)</th>
                         <th>MQ-135 (Out)</th>
                         <th>MQ-7 (Out)</th>
                         <th>PM 2.5 (Out)</th>
+                        <th>PM 10 (Out)</th>
                     </tr>
                 </thead>
                 <tbody id="history-table-body">
-                    <tr><td colspan="7">Memuat data dari server...</td></tr>
+                    <tr><td colspan="9">Memuat data dari server...</td></tr>
                 </tbody>
             </table>
         </div>
