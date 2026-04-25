@@ -37,13 +37,16 @@
             </div>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                 <button onclick="downloadExcel('raw')" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-download"></i> Semua Data (Mentah)
+                    <i class="fa-solid fa-download"></i> Mentah
                 </button>
                 <button onclick="downloadExcel('15min')" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-clock"></i> Rata-rata 15 Menit
+                    <i class="fa-solid fa-clock"></i> Per 15 Menit
                 </button>
                 <button onclick="downloadExcel('1hour')" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-calendar-day"></i> Rata-rata 1 Jam
+                    <i class="fa-solid fa-calendar-day"></i> Per 1 Jam
+                </button>
+                <button onclick="downloadExcel('2hour')" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+                    <i class="fa-solid fa-calendar-week"></i> Per 2 Jam
                 </button>
             </div>
             <p style="font-size: 12px; color: #9ca3af; margin-top: 10px;">*Tunggu hingga notifikasi selesai muncul setelah menekan tombol.</p>
@@ -52,9 +55,9 @@
         <div class="glass-card">
             <div class="section-title"><i class="fa-solid fa-circle-info"></i> Panduan Penggunaan Data</div>
             <ul style="color: #cbd5e1; line-height: 1.6; padding-left: 20px;">
-                <li><strong>Semua Data (Mentah):</strong> Mengunduh seluruh data asli yang dikirim oleh alat (biasanya setiap beberapa detik). Waktu sudah dikonversi otomatis ke format WIB.</li>
-                <li><strong>Rata-rata 15 Menit:</strong> Data diringkas per 15 menit. Cocok untuk mengamati paparan polutan jangka pendek secara mendetail.</li>
-                <li><strong>Rata-rata 1 Jam:</strong> Data diringkas per 1 jam. Paling cocok untuk disajikan dalam bentuk tabel lampiran atau grafik tren jangka panjang.</li>
+                <li><strong>Mentah:</strong> Mengunduh seluruh log data asli.</li>
+                <li><strong>Per 15 Menit:</strong> Cocok untuk mengamati paparan polutan jangka pendek.</li>
+                <li><strong>Per 1 & 2 Jam:</strong> Cocok untuk grafik tren jangka panjang di laporan KTI.</li>
             </ul>
         </div>
     </div>
