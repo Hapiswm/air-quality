@@ -9,17 +9,15 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        .speedo-card { text-align: center; padding: 25px 15px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }
-        .speedo-title { font-weight: 800; margin-bottom: 15px; color: #f8fafc; font-size: 15px; }
+        /* Desain Khusus Speedometer Mirip Mockup */
+        .speedo-card { text-align: center; padding: 25px 20px; position: relative; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }
+        .speedo-title { font-weight: 700; margin-bottom: 10px; color: #f8fafc; font-size: 16px; }
         .speedo-container { position: relative; width: 100%; max-width: 260px; margin: 0 auto; }
         .speedo-svg { width: 100%; display: block; overflow: visible; }
-        .speedo-val-wrap { margin-top: -10px; display: flex; flex-direction: column; align-items: center; min-height: 100px; }
-        .speedo-val { font-size: 36px; font-weight: 900; color: #f8fafc; font-family: 'Segoe UI', sans-serif; }
-        .speedo-unit { font-size: 14px; font-weight: normal; color: #9ca3af; }
-        .speedo-emoji { font-size: 32px; margin: 5px 0; line-height: 1; }
-        .speedo-stat { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        /* Jarum Berputar di tengah bawah (120, 120) */
-        .speedo-needle { transform-origin: 120px 120px; transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+        .speedo-val { font-size: 34px; font-weight: 800; color: #f8fafc; margin-top: -15px; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .speedo-unit { font-size: 16px; font-weight: 600; color: #9ca3af; text-transform: none; }
+        .speedo-stat-wrap { margin-top: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .speedo-needle { transform-origin: 120px 140px; transition: transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); transform: rotate(-90deg); }
     </style>
 </head>
 <body>
@@ -36,51 +34,65 @@
     <div class="page-wrap">
         <div class="page-header" style="text-align: center;">
             <h1><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
-            <p>Visualisasi presisi sesuai standar kualitas udara (ISPU).</p>
+            <p>Visualisasi presisi gaya meteran kendaraan untuk pantauan kualitas udara.</p>
         </div>
 
         <div class="section-title" style="color: var(--accent-yellow); margin-top: 20px;"><i class="fa-solid fa-house"></i> Area Indoor</div>
-        <div class="card-grid" id="grid-indoor"></div>
-
-        <div class="section-title" style="color: var(--accent-yellow); margin-top: 30px;"><i class="fa-solid fa-tree"></i> Area Outdoor</div>
-        <div class="card-grid" id="grid-outdoor"></div>
-    </div>
-
-    <script>
-        // Otomasi Render agar HTML bersih
-        function createSpeedoHTML(id, title) {
-            return `
-            <div class="speedo-card">
-                <div class="speedo-title">${title}</div>
+        <div class="card-grid">
+            
+            <div class="speedo-card" id="card-mq135-in">
+                <div class="speedo-title">MQ-135 Indoor</div>
                 <div class="speedo-container">
-                    <svg viewBox="0 0 240 140" class="speedo-svg">
-                        <defs><circle id="b-${id}" cx="120" cy="120" r="75" fill="none" stroke-width="16" /></defs>
-                        <use href="#b-${id}" stroke="#22c55e" stroke-dasharray="47 470" transform="rotate(180 120 120)" />
-                        <use href="#b-${id}" stroke="#eab308" stroke-dasharray="47 470" transform="rotate(216 120 120)" />
-                        <use href="#b-${id}" stroke="#ef4444" stroke-dasharray="47 470" transform="rotate(252 120 120)" />
-                        <use href="#b-${id}" stroke="#a855f7" stroke-dasharray="47 470" transform="rotate(288 120 120)" />
-                        <use href="#b-${id}" stroke="#78350f" stroke-dasharray="47 470" transform="rotate(324 120 120)" />
-                        <use href="#b-${id}" stroke="#1e293b" stroke-dasharray="2 7.4" transform="rotate(180 120 120)" />
-                        <text x="35" y="118" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">0</text>
-                        <text x="50" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">50</text>
-                        <text x="85" y="48" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">100</text>
-                        <text x="120" y="36" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">150</text>
-                        <text x="155" y="48" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">200</text>
-                        <text x="190" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">300</text>
-                        <text x="205" y="118" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">400</text>
-                        <g id="needle-${id}" class="speedo-needle"><polygon points="115,120 125,120 120,35" fill="#3b82f6" /></g>
+                    <svg viewBox="0 0 240 160" class="speedo-svg">
+                        <g stroke-width="15" fill="none">
+                            <path d="M 30 140 A 90 90 0 0 1 45 95" stroke="#22c55e" />
+                            <path d="M 45 95 A 90 90 0 0 1 80 62" stroke="#eab308" />
+                            <path d="M 80 62 A 90 90 0 0 1 160 62" stroke="#ef4444" />
+                            <path d="M 160 62 A 90 90 0 0 1 195 95" stroke="#a855f7" />
+                            <path d="M 195 95 A 90 90 0 0 1 210 140" stroke="#78350f" />
+                        </g>
+                        <path d="M 45 135 A 75 75 0 0 1 195 135" fill="none" stroke="#475569" stroke-width="6" stroke-dasharray="4 8" />
+                        <text x="30" y="155" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">0</text>
+                        <text x="35" y="105" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">50</text>
+                        <text x="65" y="70" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">100</text>
+                        <text x="120" y="52" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">150</text>
+                        <text x="175" y="70" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">200</text>
+                        <text x="205" y="105" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">300</text>
+                        <text x="210" y="155" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-mq135-in" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /><circle cx="120" cy="140" r="8" fill="#1e3a8a" /></g>
                     </svg>
-                    <div class="speedo-val-wrap">
-                        <div id="val-${id}" class="speedo-val">--</div>
-                        <div id="emoji-${id}" class="speedo-emoji">⌛</div>
-                        <div id="stat-${id}" class="speedo-stat">MEMUAT...</div>
-                    </div>
+                    <div id="val-mq135-in" class="speedo-val">0.00 <span class="speedo-unit">ppm</span></div>
                 </div>
-            </div>`;
-        }
-        document.getElementById('grid-indoor').innerHTML = createSpeedoHTML('mq135-in','MQ-135 Indoor')+createSpeedoHTML('mq7-in','MQ-7 Indoor')+createSpeedoHTML('pm25-in','PM 2.5 Indoor')+createSpeedoHTML('pm10-in','PM 10 Indoor');
-        document.getElementById('grid-outdoor').innerHTML = createSpeedoHTML('mq135-out','MQ-135 Outdoor')+createSpeedoHTML('mq7-out','MQ-7 Outdoor')+createSpeedoHTML('pm25-out','PM 2.5 Outdoor')+createSpeedoHTML('pm10-out','PM 10 Outdoor');
-    </script>
-    <script src="assets/js/app.js"></script>
-</body>
-</html>
+                <div id="stat-mq135-in" class="speedo-stat-wrap"><div style="font-size: 26px; margin-bottom: 2px;">⏳</div><div style="font-size: 13px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+            <div class="speedo-card" id="card-mq7-in">
+                <div class="speedo-title">MQ-7 Indoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 160" class="speedo-svg">
+                        <g stroke-width="15" fill="none"><path d="M 30 140 A 90 90 0 0 1 45 95" stroke="#22c55e" /><path d="M 45 95 A 90 90 0 0 1 80 62" stroke="#eab308" /><path d="M 80 62 A 90 90 0 0 1 160 62" stroke="#ef4444" /><path d="M 160 62 A 90 90 0 0 1 195 95" stroke="#a855f7" /><path d="M 195 95 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 45 135 A 75 75 0 0 1 195 135" fill="none" stroke="#475569" stroke-width="6" stroke-dasharray="4 8" />
+                        <text x="30" y="155" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">0</text><text x="35" y="105" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">50</text><text x="65" y="70" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">100</text><text x="120" y="52" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">150</text><text x="175" y="70" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">200</text><text x="205" y="105" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">300</text><text x="210" y="155" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-mq7-in" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /><circle cx="120" cy="140" r="8" fill="#1e3a8a" /></g>
+                    </svg>
+                    <div id="val-mq7-in" class="speedo-val">0.00 <span class="speedo-unit">ppm</span></div>
+                </div>
+                <div id="stat-mq7-in" class="speedo-stat-wrap"><div style="font-size: 26px; margin-bottom: 2px;">⏳</div><div style="font-size: 13px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+            <div class="speedo-card" id="card-pm25-in">
+                <div class="speedo-title">PM 2.5 Indoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 160" class="speedo-svg">
+                        <g stroke-width="15" fill="none"><path d="M 30 140 A 90 90 0 0 1 45 95" stroke="#22c55e" /><path d="M 45 95 A 90 90 0 0 1 80 62" stroke="#eab308" /><path d="M 80 62 A 90 90 0 0 1 160 62" stroke="#ef4444" /><path d="M 160 62 A 90 90 0 0 1 195 95" stroke="#a855f7" /><path d="M 195 95 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 45 135 A 75 75 0 0 1 195 135" fill="none" stroke="#475569" stroke-width="6" stroke-dasharray="4 8" />
+                        <text x="30" y="155" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">0</text><text x="35" y="105" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">50</text><text x="65" y="70" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">100</text><text x="120" y="52" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">150</text><text x="175" y="70" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">200</text><text x="205" y="105" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">300</text><text x="210" y="155" font-size="12" fill="#9ca3af" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-pm25-in" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /><circle cx="120" cy="140" r="8" fill="#1e3a8a" /></g>
+                    </svg>
+                    <div id="val-pm25-in" class="speedo-val">0 <span class="speedo-unit">µg/m³</span></div>
+                </div>
+                <div id="stat-pm25-in" class="speedo-stat-wrap"><div style="font-size: 26px; margin-bottom: 2px;">⏳</div><div style="font-size: 13px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+            <div class="speedo-card" id="card-pm10-in">
+                <div class="speedo-title">PM 10 Indoorhttp://googleusercontent.com/image_generation_content/1
