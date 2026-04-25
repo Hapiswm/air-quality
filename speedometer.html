@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nano Banana - Speedometer</title>
     <title>Air Quality - Speedometer</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <body>
     <div class="topbar">
-        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> NANO BANANA</div>
         <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> AIR QUALITY</div>
         <div class="topbar-menu">
             <a href="index.html">Dashboard</a>
@@ -25,13 +21,152 @@
     </div>
 
     <div class="page-wrap">
-        <div class="page-header">
+        <div class="page-header" style="text-align: center;">
             <h1><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
-            <p>Visualisasi gaya meteran kendaraan untuk pantauan kualitas udara.</p>
+            <p>Visualisasi presisi gaya meteran kendaraan untuk pantauan kualitas udara.</p>
         </div>
-        <div id="speedometer-container" class="card-grid"></div>
-    </div>
 
+        <div class="section-title" style="color: var(--accent-yellow); margin-top: 20px;"><i class="fa-solid fa-house"></i> Area Indoor</div>
+        <div class="card-grid">
+            
+            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">MQ-135 Indoor</div>
+                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
+                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
+                    
+                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text>
+                    <text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text>
+                    <text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
+
+                    <g id="needle-mq135-in" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);">
+                        <polygon points="97,130 103,130 100,60" fill="#3b82f6" />
+                        <circle cx="100" cy="130" r="6" fill="#1e40af" />
+                    </g>
+                    <text id="val-mq135-in" data-unit="PPM" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">PPM</tspan></text>
+                </svg>
+                <div id="stat-mq135-in" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;">
+                    <div style="font-size: 26px; margin-bottom: 5px;">⏳</div>
+                    <div style="color: #9ca3af;">MENUNGGU</div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">MQ-7 Indoor</div>
+                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
+                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
+                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
+                    <g id="needle-mq7-in" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
+                    <text id="val-mq7-in" data-unit="PPM" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">PPM</tspan></text>
+                </svg>
+                <div id="stat-mq7-in" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">PM 2.5 Indoor</div>
+                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
+                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
+                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
+                    <g id="needle-pm25-in" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
+                    <text id="val-pm25-in" data-unit="µg/m³" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">µg/m³</tspan></text>
+                </svg>
+                <div id="stat-pm25-in" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">PM 10 Indoor</div>
+                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
+                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
+                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
+                    <g id="needle-pm10-in" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
+                    <text id="val-pm10-in" data-unit="µg/m³" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">µg/m³</tspan></text>
+                </svg>
+                <div id="stat-pm10-in" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+        </div>
+
+        <div class="section-title" style="color: var(--accent-yellow); margin-top: 30px;"><i class="fa-solid fa-tree"></i> Area Outdoor</div>
+        <div class="card-grid">
+            
+            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">MQ-135 Outdoor</div>
+                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
+                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
+                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
+                    <g id="needle-mq135-out" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
+                    <text id="val-mq135-out" data-unit="PPM" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">PPM</tspan></text>
+                </svg>
+                <div id="stat-mq135-out" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">MQ-7 Outdoor</div>
+                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
+                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
+                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
+                    <g id="needle-mq7-out" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
+                    <text id="val-mq7-out" data-unit="PPM" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">PPM</tspan></text>
+                </svg>
+                <div id="stat-mq7-out" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">PM 2.5 Outdoor</div>
+                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
+                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
+                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
+                    <g id="needle-pm25-out" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
+                    <text id="val-pm25-out" data-unit="µg/m³" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">µg/m³</tspan></text>
+                </svg>
+                <div id="stat-pm25-out" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
+                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">PM 10 Outdoor</div>
+                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
+                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
+                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
+                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
+                    <g id="needle-pm10-out" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
+                    <text id="val-pm10-out" data-unit="µg/m³" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">µg/m³</tspan></text>
+                </svg>
+                <div id="stat-pm10-out" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            </div>
+
+        </div>
+    </div>
+    
     <script src="assets/js/app.js"></script>
 </body>
 </html>
