@@ -8,6 +8,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        .speedo-card { text-align: center; padding: 30px 20px; position: relative; }
+        .speedo-title { font-weight: 800; margin-bottom: 25px; color: #f8fafc; font-size: 16px; }
+        .speedo-container { position: relative; width: 100%; max-width: 250px; margin: 0 auto; }
+        .speedo-svg { width: 100%; display: block; }
+        .speedo-val { font-size: 38px; font-weight: 900; color: #f8fafc; margin-top: -15px; }
+        .speedo-unit { font-size: 14px; font-weight: normal; color: #9ca3af; }
+        .speedo-stat-wrap { margin-top: 15px; }
+        .speedo-needle { transform-origin: 120px 140px; transition: transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); transform: rotate(-90deg); }
+    </style>
 </head>
 <body>
     <div class="topbar">
@@ -29,74 +39,72 @@
         <div class="section-title" style="color: var(--accent-yellow); margin-top: 20px;"><i class="fa-solid fa-house"></i> Area Indoor</div>
         <div class="card-grid">
             
-            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">MQ-135 Indoor</div>
-                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
-                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
-                    
-                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text>
-                    <text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text>
-                    <text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
-
-                    <g id="needle-mq135-in" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);">
-                        <polygon points="97,130 103,130 100,60" fill="#3b82f6" />
-                        <circle cx="100" cy="130" r="6" fill="#1e40af" />
-                    </g>
-                    <text id="val-mq135-in" data-unit="PPM" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">PPM</tspan></text>
-                </svg>
-                <div id="stat-mq135-in" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;">
-                    <div style="font-size: 26px; margin-bottom: 5px;">⏳</div>
-                    <div style="color: #9ca3af;">MENUNGGU</div>
+            <div class="glass-card speedo-card" id="card-mq135-in">
+                <div class="speedo-title">MQ-135 Indoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 150" class="speedo-svg">
+                        <g stroke-width="18" fill="none">
+                            <path d="M 30 140 A 90 90 0 0 1 36.85 105.56" stroke="#22c55e" />
+                            <path d="M 36.85 105.56 A 90 90 0 0 1 56.36 76.36" stroke="#eab308" />
+                            <path d="M 56.36 76.36 A 90 90 0 0 1 120 50" stroke="#ef4444" />
+                            <path d="M 120 50 A 90 90 0 0 1 183.64 76.36" stroke="#a855f7" />
+                            <path d="M 183.64 76.36 A 90 90 0 0 1 210 140" stroke="#78350f" />
+                        </g>
+                        <path d="M 30 140 A 90 90 0 0 1 210 140" fill="none" stroke="#1e293b" stroke-width="20" stroke-dasharray="3 7" />
+                        <text x="35" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">0</text>
+                        <text x="45" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">50</text>
+                        <text x="75" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">100</text>
+                        <text x="120" y="42" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">150</text>
+                        <text x="165" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">200</text>
+                        <text x="195" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">300</text>
+                        <text x="210" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-mq135-in" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /></g>
+                    </svg>
+                    <div id="val-mq135-in" class="speedo-val">0 <span class="speedo-unit">PPM</span></div>
                 </div>
+                <div id="stat-mq135-in" class="speedo-stat-wrap"><div style="font-size: 28px; margin-bottom: 5px;">⏳</div><div style="font-size: 14px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
             </div>
 
-            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">MQ-7 Indoor</div>
-                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
-                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
-                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
-                    <g id="needle-mq7-in" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
-                    <text id="val-mq7-in" data-unit="PPM" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">PPM</tspan></text>
-                </svg>
-                <div id="stat-mq7-in" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            <div class="glass-card speedo-card" id="card-mq7-in">
+                <div class="speedo-title">MQ-7 Indoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 150" class="speedo-svg">
+                        <g stroke-width="18" fill="none"><path d="M 30 140 A 90 90 0 0 1 36.85 105.56" stroke="#22c55e" /><path d="M 36.85 105.56 A 90 90 0 0 1 56.36 76.36" stroke="#eab308" /><path d="M 56.36 76.36 A 90 90 0 0 1 120 50" stroke="#ef4444" /><path d="M 120 50 A 90 90 0 0 1 183.64 76.36" stroke="#a855f7" /><path d="M 183.64 76.36 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 30 140 A 90 90 0 0 1 210 140" fill="none" stroke="#1e293b" stroke-width="20" stroke-dasharray="3 7" />
+                        <text x="35" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">0</text><text x="45" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">50</text><text x="75" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">100</text><text x="120" y="42" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">150</text><text x="165" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">200</text><text x="195" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">300</text><text x="210" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-mq7-in" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /></g>
+                    </svg>
+                    <div id="val-mq7-in" class="speedo-val">0 <span class="speedo-unit">PPM</span></div>
+                </div>
+                <div id="stat-mq7-in" class="speedo-stat-wrap"><div style="font-size: 28px; margin-bottom: 5px;">⏳</div><div style="font-size: 14px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
             </div>
 
-            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">PM 2.5 Indoor</div>
-                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
-                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
-                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
-                    <g id="needle-pm25-in" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
-                    <text id="val-pm25-in" data-unit="µg/m³" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">µg/m³</tspan></text>
-                </svg>
-                <div id="stat-pm25-in" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            <div class="glass-card speedo-card" id="card-pm25-in">
+                <div class="speedo-title">PM 2.5 Indoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 150" class="speedo-svg">
+                        <g stroke-width="18" fill="none"><path d="M 30 140 A 90 90 0 0 1 36.85 105.56" stroke="#22c55e" /><path d="M 36.85 105.56 A 90 90 0 0 1 56.36 76.36" stroke="#eab308" /><path d="M 56.36 76.36 A 90 90 0 0 1 120 50" stroke="#ef4444" /><path d="M 120 50 A 90 90 0 0 1 183.64 76.36" stroke="#a855f7" /><path d="M 183.64 76.36 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 30 140 A 90 90 0 0 1 210 140" fill="none" stroke="#1e293b" stroke-width="20" stroke-dasharray="3 7" />
+                        <text x="35" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">0</text><text x="45" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">50</text><text x="75" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">100</text><text x="120" y="42" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">150</text><text x="165" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">200</text><text x="195" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">300</text><text x="210" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-pm25-in" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /></g>
+                    </svg>
+                    <div id="val-pm25-in" class="speedo-val">0 <span class="speedo-unit">µg/m³</span></div>
+                </div>
+                <div id="stat-pm25-in" class="speedo-stat-wrap"><div style="font-size: 28px; margin-bottom: 5px;">⏳</div><div style="font-size: 14px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
             </div>
 
-            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">PM 10 Indoor</div>
-                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
-                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
-                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
-                    <g id="needle-pm10-in" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
-                    <text id="val-pm10-in" data-unit="µg/m³" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">µg/m³</tspan></text>
-                </svg>
-                <div id="stat-pm10-in" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            <div class="glass-card speedo-card" id="card-pm10-in">
+                <div class="speedo-title">PM 10 Indoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 150" class="speedo-svg">
+                        <g stroke-width="18" fill="none"><path d="M 30 140 A 90 90 0 0 1 36.85 105.56" stroke="#22c55e" /><path d="M 36.85 105.56 A 90 90 0 0 1 56.36 76.36" stroke="#eab308" /><path d="M 56.36 76.36 A 90 90 0 0 1 120 50" stroke="#ef4444" /><path d="M 120 50 A 90 90 0 0 1 183.64 76.36" stroke="#a855f7" /><path d="M 183.64 76.36 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 30 140 A 90 90 0 0 1 210 140" fill="none" stroke="#1e293b" stroke-width="20" stroke-dasharray="3 7" />
+                        <text x="35" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">0</text><text x="45" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">50</text><text x="75" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">100</text><text x="120" y="42" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">150</text><text x="165" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">200</text><text x="195" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">300</text><text x="210" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-pm10-in" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /></g>
+                    </svg>
+                    <div id="val-pm10-in" class="speedo-val">0 <span class="speedo-unit">µg/m³</span></div>
+                </div>
+                <div id="stat-pm10-in" class="speedo-stat-wrap"><div style="font-size: 28px; margin-bottom: 5px;">⏳</div><div style="font-size: 14px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
             </div>
 
         </div>
@@ -104,64 +112,60 @@
         <div class="section-title" style="color: var(--accent-yellow); margin-top: 30px;"><i class="fa-solid fa-tree"></i> Area Outdoor</div>
         <div class="card-grid">
             
-            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">MQ-135 Outdoor</div>
-                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
-                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
-                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
-                    <g id="needle-mq135-out" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
-                    <text id="val-mq135-out" data-unit="PPM" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">PPM</tspan></text>
-                </svg>
-                <div id="stat-mq135-out" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            <div class="glass-card speedo-card" id="card-mq135-out">
+                <div class="speedo-title">MQ-135 Outdoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 150" class="speedo-svg">
+                        <g stroke-width="18" fill="none"><path d="M 30 140 A 90 90 0 0 1 36.85 105.56" stroke="#22c55e" /><path d="M 36.85 105.56 A 90 90 0 0 1 56.36 76.36" stroke="#eab308" /><path d="M 56.36 76.36 A 90 90 0 0 1 120 50" stroke="#ef4444" /><path d="M 120 50 A 90 90 0 0 1 183.64 76.36" stroke="#a855f7" /><path d="M 183.64 76.36 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 30 140 A 90 90 0 0 1 210 140" fill="none" stroke="#1e293b" stroke-width="20" stroke-dasharray="3 7" />
+                        <text x="35" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">0</text><text x="45" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">50</text><text x="75" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">100</text><text x="120" y="42" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">150</text><text x="165" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">200</text><text x="195" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">300</text><text x="210" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-mq135-out" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /></g>
+                    </svg>
+                    <div id="val-mq135-out" class="speedo-val">0 <span class="speedo-unit">PPM</span></div>
+                </div>
+                <div id="stat-mq135-out" class="speedo-stat-wrap"><div style="font-size: 28px; margin-bottom: 5px;">⏳</div><div style="font-size: 14px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
             </div>
 
-            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">MQ-7 Outdoor</div>
-                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
-                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
-                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
-                    <g id="needle-mq7-out" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
-                    <text id="val-mq7-out" data-unit="PPM" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">PPM</tspan></text>
-                </svg>
-                <div id="stat-mq7-out" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            <div class="glass-card speedo-card" id="card-mq7-out">
+                <div class="speedo-title">MQ-7 Outdoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 150" class="speedo-svg">
+                        <g stroke-width="18" fill="none"><path d="M 30 140 A 90 90 0 0 1 36.85 105.56" stroke="#22c55e" /><path d="M 36.85 105.56 A 90 90 0 0 1 56.36 76.36" stroke="#eab308" /><path d="M 56.36 76.36 A 90 90 0 0 1 120 50" stroke="#ef4444" /><path d="M 120 50 A 90 90 0 0 1 183.64 76.36" stroke="#a855f7" /><path d="M 183.64 76.36 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 30 140 A 90 90 0 0 1 210 140" fill="none" stroke="#1e293b" stroke-width="20" stroke-dasharray="3 7" />
+                        <text x="35" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">0</text><text x="45" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">50</text><text x="75" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">100</text><text x="120" y="42" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">150</text><text x="165" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">200</text><text x="195" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">300</text><text x="210" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-mq7-out" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /></g>
+                    </svg>
+                    <div id="val-mq7-out" class="speedo-val">0 <span class="speedo-unit">PPM</span></div>
+                </div>
+                <div id="stat-mq7-out" class="speedo-stat-wrap"><div style="font-size: 28px; margin-bottom: 5px;">⏳</div><div style="font-size: 14px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
             </div>
 
-            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">PM 2.5 Outdoor</div>
-                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
-                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
-                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
-                    <g id="needle-pm25-out" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
-                    <text id="val-pm25-out" data-unit="µg/m³" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">µg/m³</tspan></text>
-                </svg>
-                <div id="stat-pm25-out" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            <div class="glass-card speedo-card" id="card-pm25-out">
+                <div class="speedo-title">PM 2.5 Outdoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 150" class="speedo-svg">
+                        <g stroke-width="18" fill="none"><path d="M 30 140 A 90 90 0 0 1 36.85 105.56" stroke="#22c55e" /><path d="M 36.85 105.56 A 90 90 0 0 1 56.36 76.36" stroke="#eab308" /><path d="M 56.36 76.36 A 90 90 0 0 1 120 50" stroke="#ef4444" /><path d="M 120 50 A 90 90 0 0 1 183.64 76.36" stroke="#a855f7" /><path d="M 183.64 76.36 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 30 140 A 90 90 0 0 1 210 140" fill="none" stroke="#1e293b" stroke-width="20" stroke-dasharray="3 7" />
+                        <text x="35" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">0</text><text x="45" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">50</text><text x="75" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">100</text><text x="120" y="42" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">150</text><text x="165" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">200</text><text x="195" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">300</text><text x="210" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-pm25-out" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /></g>
+                    </svg>
+                    <div id="val-pm25-out" class="speedo-val">0 <span class="speedo-unit">µg/m³</span></div>
+                </div>
+                <div id="stat-pm25-out" class="speedo-stat-wrap"><div style="font-size: 28px; margin-bottom: 5px;">⏳</div><div style="font-size: 14px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
             </div>
 
-            <div class="glass-card" style="text-align: center; padding: 20px; position: relative;">
-                <div style="font-weight: bold; margin-bottom: 10px; color: #cbd5e1;">PM 10 Outdoor</div>
-                <svg viewBox="0 0 200 170" style="width: 100%; max-width: 180px; margin: 0 auto; display: block;">
-                    <path d="M 20 130 A 80 80 0 0 1 26.1 99.4" fill="none" stroke="#22c55e" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 26.1 99.4 A 80 80 0 0 1 43.5 73.5" fill="none" stroke="#eab308" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 43.5 73.5 A 80 80 0 0 1 100 50" fill="none" stroke="#ef4444" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 100 50 A 80 80 0 0 1 156.5 73.5" fill="none" stroke="#a855f7" stroke-width="15" stroke-dasharray="6 4" />
-                    <path d="M 156.5 73.5 A 80 80 0 0 1 180 130" fill="none" stroke="#78350f" stroke-width="15" stroke-dasharray="6 4" />
-                    <text x="25" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">0</text><text x="100" y="40" font-size="10" fill="#9ca3af" text-anchor="middle">200</text><text x="175" y="145" font-size="10" fill="#9ca3af" text-anchor="middle">400</text>
-                    <g id="needle-pm10-out" transform="rotate(-90, 100, 130)" style="transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);"><polygon points="97,130 103,130 100,60" fill="#3b82f6" /><circle cx="100" cy="130" r="6" fill="#1e40af" /></g>
-                    <text id="val-pm10-out" data-unit="µg/m³" x="100" y="165" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">0 <tspan font-size="10" fill="#9ca3af">µg/m³</tspan></text>
-                </svg>
-                <div id="stat-pm10-out" style="font-size: 13px; font-weight: bold; margin-top: 5px; text-transform: uppercase;"><div style="font-size: 26px; margin-bottom: 5px;">⏳</div><div style="color: #9ca3af;">MENUNGGU</div></div>
+            <div class="glass-card speedo-card" id="card-pm10-out">
+                <div class="speedo-title">PM 10 Outdoor</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 150" class="speedo-svg">
+                        <g stroke-width="18" fill="none"><path d="M 30 140 A 90 90 0 0 1 36.85 105.56" stroke="#22c55e" /><path d="M 36.85 105.56 A 90 90 0 0 1 56.36 76.36" stroke="#eab308" /><path d="M 56.36 76.36 A 90 90 0 0 1 120 50" stroke="#ef4444" /><path d="M 120 50 A 90 90 0 0 1 183.64 76.36" stroke="#a855f7" /><path d="M 183.64 76.36 A 90 90 0 0 1 210 140" stroke="#78350f" /></g>
+                        <path d="M 30 140 A 90 90 0 0 1 210 140" fill="none" stroke="#1e293b" stroke-width="20" stroke-dasharray="3 7" />
+                        <text x="35" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">0</text><text x="45" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">50</text><text x="75" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">100</text><text x="120" y="42" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">150</text><text x="165" y="60" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">200</text><text x="195" y="85" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">300</text><text x="210" y="125" font-size="10" fill="#cbd5e1" font-weight="bold" text-anchor="middle">400</text>
+                        <g id="needle-pm10-out" class="speedo-needle"><polygon points="116,140 124,140 120,65" fill="#3b82f6" /></g>
+                    </svg>
+                    <div id="val-pm10-out" class="speedo-val">0 <span class="speedo-unit">µg/m³</span></div>
+                </div>
+                <div id="stat-pm10-out" class="speedo-stat-wrap"><div style="font-size: 28px; margin-bottom: 5px;">⏳</div><div style="font-size: 14px; font-weight: 800; color: #9ca3af;">MENUNGGU</div></div>
             </div>
 
         </div>
