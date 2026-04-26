@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Quality - Grafik History</title>
+    <title>Air Quality - Grafik Komparasi</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .date-input { padding: 8px 12px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #3b82f6; outline: none; cursor: pointer; color-scheme: dark; font-family: inherit;}
+    </style>
 </head>
 <body>
     <div class="topbar">
@@ -22,26 +25,36 @@
     </div>
     
     <div class="page-wrap">
-        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div>
-                <h1><i class="fa-solid fa-chart-line"></i> Grafik Komparasi Udara</h1>
-                <p>Pantau fluktuasi polusi berdasarkan rentang waktu.</p>
+                <h1><i class="fa-solid fa-chart-line"></i> Grafik Komparasi Transmisi</h1>
+                <p>Pantau fluktuasi Node Receiver vs Node Sender berdasarkan rentang waktu spesifik.</p>
             </div>
-            <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
-                <span style="color: var(--accent-yellow); font-weight: bold; margin-right: 10px;"><i class="fa-solid fa-clock"></i> Rentang Waktu:</span>
-                <select id="chart-time-filter" style="padding: 8px; border-radius: 5px; background: #1e293b; color: white; border: 1px solid #3b82f6; outline: none; cursor: pointer;">
-                    <option value="30">Live (2,5 Menit Terakhir)</option>
-                    <option value="720">History 1 Jam Terakhir</option>
-                    <option value="2160">History 3 Jam Terakhir</option>
-                </select>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid var(--glass-border); max-width: 600px;">
+                <div style="margin-bottom: 10px;">
+                    <span style="color: var(--accent-yellow); font-weight: bold; margin-right: 10px;"><i class="fa-solid fa-clock"></i> Mode Grafik:</span>
+                    <select id="chart-time-filter" onchange="changeChartMode()" class="date-input">
+                        <option value="live">Live (Real-time)</option>
+                        <option value="24h">History 24 Jam Terakhir</option>
+                        <option value="custom">Pilih Tanggal & Jam Spesifik...</option>
+                    </select>
+                </div>
+                
+                <div id="custom-chart-controls" style="display:none; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px;">
+                    <input type="datetime-local" id="chart-start" class="date-input">
+                    <span style="color: white; font-weight: bold;">s/d</span>
+                    <input type="datetime-local" id="chart-end" class="date-input">
+                    <button onclick="applyCustomChart()" style="background: #3b82f6; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight:bold;"><i class="fa-solid fa-magnifying-glass"></i> Tampilkan</button>
+                </div>
             </div>
         </div>
 
         <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="glass-card"><div class="section-title">MQ-135 (Outdoor vs Indoor)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-mq135"></canvas></div></div>
-            <div class="glass-card"><div class="section-title">MQ-7 (Outdoor vs Indoor)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-mq7"></canvas></div></div>
-            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 2.5 (Outdoor vs Indoor)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-pm25"></canvas></div></div>
-            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 10 (Outdoor vs Indoor)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-pm10"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">MQ-135 (PPM)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-mq135"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">MQ-7 (PPM)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-mq7"></canvas></div></div>
+            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 2.5 (µg/m³)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-pm25"></canvas></div></div>
+            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 10 (µg/m³)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-pm10"></canvas></div></div>
         </div>
     </div>
     <script src="assets/js/app.js"></script>
