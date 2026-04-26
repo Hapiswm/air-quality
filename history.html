@@ -10,10 +10,12 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; color: #e2e8f0; font-size: 14px; }
-        .data-table th, .data-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; color: #e2e8f0; font-size: 13px; }
+        .data-table th, .data-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
         .data-table th { background: rgba(0,0,0,0.3); color: var(--accent-yellow); font-weight: bold; }
-        .data-table tr:hover { background: rgba(255,255,255,0.05); }
+        .date-input { padding: 10px 15px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #3b82f6; outline: none; cursor: pointer; color-scheme: dark; font-family: inherit; width: 100%;}
+        .form-group { text-align: left; margin-bottom: 15px; flex: 1; min-width: 200px;}
+        .form-label { display: block; color: var(--accent-yellow); font-weight: bold; margin-bottom: 8px; font-size: 14px;}
     </style>
 </head>
 <body>
@@ -30,27 +32,41 @@
     <div class="page-wrap">
         <div class="page-header">
             <div>
-                <h1><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Data</h1>
-                <p>Unduh rekap data pemantauan untuk analisis penelitian.</p>
+                <h1><i class="fa-solid fa-file-export"></i> Export Data Penelitian</h1>
+                <p>Unduh data KTI (Receiver & Sender) berdasarkan filter waktu dan metode pengolahan.</p>
             </div>
         </div>
 
-        <div class="glass-card" style="margin-bottom: 20px; text-align: center; border: 1px solid var(--accent-yellow);">
-            <div class="section-title" style="color: var(--accent-yellow); margin-bottom: 15px;">
-                <i class="fa-solid fa-file-excel"></i> Export Data (Format .xlsx)
+        <div class="glass-card" style="margin-bottom: 20px; border: 1px solid var(--accent-yellow);">
+            <div class="section-title" style="color: var(--accent-yellow); margin-bottom: 20px; font-size: 18px; text-align: center;">
+                <i class="fa-solid fa-file-excel"></i> Parameter Unduhan Excel (.xlsx)
             </div>
-            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                <button onclick="downloadExcel('raw')" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-download"></i> Mentah
-                </button>
-                <button onclick="downloadExcel('15min')" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-clock"></i> Per 15 Menit
-                </button>
-                <button onclick="downloadExcel('1hour')" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-calendar-day"></i> Per 1 Jam
-                </button>
-                <button onclick="downloadExcel('2hour')" style="background: #f59e0b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                    <i class="fa-solid fa-calendar-week"></i> Per 2 Jam
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px;">
+                
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-calendar-plus"></i> Waktu Mulai:</label>
+                    <input type="datetime-local" id="hist-start" class="date-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-calendar-check"></i> Waktu Selesai:</label>
+                    <input type="datetime-local" id="hist-end" class="date-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-filter"></i> Metode Olah Data:</label>
+                    <select id="hist-format" class="date-input">
+                        <option value="raw">1. Data Mentah Asli (Raw)</option>
+                        <option value="hourly">2. Rata-rata per Jam (Hourly Avg)</option>
+                        <option value="daily">3. Rata-rata Harian (Daily Avg)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 25px;">
+                <button onclick="processDownload()" style="background: #10b981; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
+                    <i class="fa-solid fa-download"></i> Ekstrak & Unduh Excel
                 </button>
             </div>
         </div>
@@ -59,17 +75,7 @@
             <div class="section-title"><i class="fa-solid fa-table"></i> Pratinjau 10 Data Terakhir</div>
             <table class="data-table">
                 <thead>
-                    <tr>
-                        <th>Waktu (WIB)</th>
-                        <th>MQ-135 (In)</th>
-                        <th>MQ-7 (In)</th>
-                        <th>PM 2.5 (In)</th>
-                        <th>PM 10 (In)</th>
-                        <th>MQ-135 (Out)</th>
-                        <th>MQ-7 (Out)</th>
-                        <th>PM 2.5 (Out)</th>
-                        <th>PM 10 (Out)</th>
-                    </tr>
+                    <tr><th>Tanggal & Jam</th><th>MQ-135 (Recv)</th><th>MQ-7 (Recv)</th><th>PM 2.5 (Recv)</th><th>PM 10 (Recv)</th><th>MQ-135 (Send)</th><th>MQ-7 (Send)</th><th>PM 2.5 (Send)</th><th>PM 10 (Send)</th></tr>
                 </thead>
                 <tbody id="history-table-body">
                     <tr><td colspan="9">Memuat data dari server...</td></tr>
