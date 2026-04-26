@@ -29,7 +29,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h1><i class="fa-solid fa-house"></i> Pemantauan Real-time</h1>
-                    <p>Dashboard Kualitas Udara (Indoor vs Outdoor)</p>
+                    <p>Dashboard Kualitas Udara (Node Receiver vs Node Sender)</p>
                 </div>
                 <div id="conn-status" class="status-badge offline"><i class="fa-solid fa-cloud-bolt"></i> <span id="status-text">MENUNGGU DATA...</span></div>
             </div>
@@ -45,37 +45,24 @@
         </div>
 
         <div class="card-grid">
-            <div class="glass-card sensor-card" id="card-mq135_indoor"><div class="sensor-title">MQ-135 (Indoor)</div><div class="sensor-val"><span id="val-mq135_indoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135_indoor">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-mq7_indoor"><div class="sensor-title">MQ-7 (Indoor)</div><div class="sensor-val"><span id="val-mq7_indoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7_indoor">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm25_indoor"><div class="sensor-title">PM 2.5 (Indoor)</div><div class="sensor-val"><span id="val-pm25_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25_indoor">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm10_indoor"><div class="sensor-title">PM 10 (Indoor)</div><div class="sensor-val"><span id="val-pm10_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10_indoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq135-recv"><div class="sensor-title">MQ-135 (Receiver)</div><div class="sensor-val"><span id="val-mq135-recv">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135-recv">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq7-recv"><div class="sensor-title">MQ-7 (Receiver)</div><div class="sensor-val"><span id="val-mq7-recv">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7-recv">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm25-recv"><div class="sensor-title">PM 2.5 (Receiver)</div><div class="sensor-val"><span id="val-pm25-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25-recv">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm10-recv"><div class="sensor-title">PM 10 (Receiver)</div><div class="sensor-val"><span id="val-pm10-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10-recv">MEMUAT...</div></div>
             
-            <div class="glass-card sensor-card" id="card-mq135_outdoor"><div class="sensor-title">MQ-135 (Outdoor)</div><div class="sensor-val"><span id="val-mq135_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135_outdoor">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-mq7_outdoor"><div class="sensor-title">MQ-7 (Outdoor)</div><div class="sensor-val"><span id="val-mq7_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7_outdoor">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm25_outdoor"><div class="sensor-title">PM 2.5 (Outdoor)</div><div class="sensor-val"><span id="val-pm25_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25_outdoor">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm10_outdoor"><div class="sensor-title">PM 10 (Outdoor)</div><div class="sensor-val"><span id="val-pm10_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10_outdoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq135-send"><div class="sensor-title">MQ-135 (Sender)</div><div class="sensor-val"><span id="val-mq135-send">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135-send">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq7-send"><div class="sensor-title">MQ-7 (Sender)</div><div class="sensor-val"><span id="val-mq7-send">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7-send">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm25-send"><div class="sensor-title">PM 2.5 (Sender)</div><div class="sensor-val"><span id="val-pm25-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25-send">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm10-send"><div class="sensor-title">PM 10 (Sender)</div><div class="sensor-val"><span id="val-pm10-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10-send">MEMUAT...</div></div>
         </div>
 
         <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
-            <div class="glass-card">
-                <div class="section-title">Live: Gas Beracun (Indoor)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div>
-            </div>
-            <div class="glass-card">
-                <div class="section-title">Live: Partikel Debu (Indoor)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div>
-            </div>
+            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Receiver)</div><div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Receiver)</div><div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div></div>
         </div>
-
         <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
-            <div class="glass-card">
-                <div class="section-title">Live: Gas Beracun (Outdoor)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="gasChartOut"></canvas></div>
-            </div>
-            <div class="glass-card">
-                <div class="section-title">Live: Partikel Debu (Outdoor)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="particleChartOut"></canvas></div>
-            </div>
+            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Sender)</div><div class="chart-box" style="height: 250px;"><canvas id="gasChartOut"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Sender)</div><div class="chart-box" style="height: 250px;"><canvas id="particleChartOut"></canvas></div></div>
         </div>
     </div>
     <script src="assets/js/app.js"></script>
