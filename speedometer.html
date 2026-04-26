@@ -9,15 +9,21 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        .speedo-card { text-align: center; padding: 25px 15px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }
-        .speedo-title { font-weight: 800; margin-bottom: 15px; color: #f8fafc; font-size: 15px; }
+        .speedo-card { text-align: center; padding: 30px 15px 25px 15px; background: #1e293b; border-radius: 16px; border: 1px solid #334155; }
+        .speedo-title { font-weight: 800; margin-bottom: 20px; color: #f8fafc; font-size: 16px; }
         .speedo-container { position: relative; width: 100%; max-width: 260px; margin: 0 auto; }
         .speedo-svg { width: 100%; display: block; overflow: visible; }
-        .speedo-val-wrap { margin-top: -10px; display: flex; flex-direction: column; align-items: center; min-height: 110px; }
-        .speedo-val { font-size: 36px; font-weight: 900; color: #f8fafc; font-family: 'Segoe UI', sans-serif; }
-        .speedo-unit { font-size: 14px; font-weight: normal; color: #9ca3af; }
-        .speedo-emoji { font-size: 32px; margin: 5px 0; line-height: 1; }
-        .speedo-stat { font-size: 12px; font-weight: 800; text-transform: uppercase; }
+        
+        /* Penyesuaian Ruang karena Emoji Dihapus */
+        .speedo-val-wrap { margin-top: -15px; display: flex; flex-direction: column; align-items: center; min-height: 80px; }
+        
+        /* Angka Diperbesar & Dibuat Lebih Rapat */
+        .speedo-val { font-size: 44px; font-weight: 900; color: #f8fafc; font-family: 'Segoe UI', sans-serif; letter-spacing: -1px; margin-bottom: 8px; }
+        .speedo-unit { font-size: 16px; font-weight: 600; color: #9ca3af; margin-left: 4px; }
+        
+        /* Teks Indikator Status Diperbesar */
+        .speedo-stat { font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        
         .speedo-needle { transform-origin: 120px 120px; transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
     </style>
 </head>
@@ -31,6 +37,7 @@
             <a href="history.html">History</a>
         </div>
     </div>
+    
     <div class="page-wrap">
         <div class="page-header" style="text-align: center;">
             <h1><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
@@ -38,20 +45,58 @@
         </div>
         <div class="section-title" style="color: var(--accent-yellow); margin-top: 20px;"><i class="fa-solid fa-microchip"></i> Area Node Receiver</div>
         <div class="card-grid" id="grid-recv"></div>
+        
         <div class="section-title" style="color: var(--accent-yellow); margin-top: 30px;"><i class="fa-solid fa-satellite-dish"></i> Area Node Sender</div>
         <div class="card-grid" id="grid-send"></div>
     </div>
+    
     <script>
         function createSpeedoHTML(id, title) {
-            return `<div class="speedo-card" id="card-${id}"><div class="speedo-title">${title}</div><div class="speedo-container"><svg viewBox="0 0 240 140" class="speedo-svg"><defs><circle id="b-${id}" cx="120" cy="120" r="75" fill="none" stroke-width="16" /></defs>
-            <use href="#b-${id}" stroke="#22c55e" stroke-dasharray="47 470" transform="rotate(180 120 120)" /><use href="#b-${id}" stroke="#eab308" stroke-dasharray="47 470" transform="rotate(216 120 120)" /><use href="#b-${id}" stroke="#ef4444" stroke-dasharray="47 470" transform="rotate(252 120 120)" /><use href="#b-${id}" stroke="#a855f7" stroke-dasharray="47 470" transform="rotate(288 120 120)" /><use href="#b-${id}" stroke="#78350f" stroke-dasharray="47 470" transform="rotate(324 120 120)" />
-            <use href="#b-${id}" stroke="#1e293b" stroke-dasharray="2 7.4" transform="rotate(180 120 120)" />
-            <text x="35" y="118" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">0</text><text x="50" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">50</text><text x="85" y="48" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">100</text><text x="120" y="36" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">150</text><text x="155" y="48" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">200</text><text x="190" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">300</text><text x="205" y="118" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">400</text>
-            <g id="needle-${id}" class="speedo-needle"><polygon points="115,120 125,120 120,35" fill="#3b82f6" /></g></svg>
-            <div class="speedo-val-wrap"><div id="val-${id}" class="speedo-val">--</div><div id="emoji-${id}" class="speedo-emoji">⌛</div><div id="stat-${id}" class="speedo-stat">MEMUAT...</div></div></div></div>`;
+            return `
+            <div class="speedo-card" id="card-${id}">
+                <div class="speedo-title">${title}</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 140" class="speedo-svg">
+                        <defs><circle id="b-${id}" cx="120" cy="120" r="75" fill="none" stroke-width="16" /></defs>
+                        <use href="#b-${id}" stroke="#22c55e" stroke-dasharray="47 470" transform="rotate(180 120 120)" />
+                        <use href="#b-${id}" stroke="#eab308" stroke-dasharray="47 470" transform="rotate(216 120 120)" />
+                        <use href="#b-${id}" stroke="#ef4444" stroke-dasharray="47 470" transform="rotate(252 120 120)" />
+                        <use href="#b-${id}" stroke="#a855f7" stroke-dasharray="47 470" transform="rotate(288 120 120)" />
+                        <use href="#b-${id}" stroke="#78350f" stroke-dasharray="47 470" transform="rotate(324 120 120)" />
+                        <use href="#b-${id}" stroke="#1e293b" stroke-dasharray="2 7.4" transform="rotate(180 120 120)" />
+                        
+                        <text x="35" y="118" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">0</text>
+                        <text x="50" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">50</text>
+                        <text x="85" y="48" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">100</text>
+                        <text x="120" y="36" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">150</text>
+                        <text x="155" y="48" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">200</text>
+                        <text x="190" y="75" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">300</text>
+                        <text x="205" y="118" font-size="11" fill="#9ca3af" font-weight="bold" text-anchor="middle">400</text>
+                        
+                        <g id="needle-${id}" class="speedo-needle">
+                            <polygon points="115,120 125,120 120,35" fill="#3b82f6" />
+                        </g>
+                    </svg>
+                    
+                    <div class="speedo-val-wrap">
+                        <div id="val-${id}" class="speedo-val">--</div>
+                        <div id="stat-${id}" class="speedo-stat" style="color:#9ca3af;">MEMUAT...</div>
+                    </div>
+                </div>
+            </div>`;
         }
-        document.getElementById('grid-recv').innerHTML = createSpeedoHTML('mq135-recv','MQ-135 Receiver')+createSpeedoHTML('mq7-recv','MQ-7 Receiver')+createSpeedoHTML('pm25-recv','PM 2.5 Receiver')+createSpeedoHTML('pm10-recv','PM 10 Receiver');
-        document.getElementById('grid-send').innerHTML = createSpeedoHTML('mq135-send','MQ-135 Sender')+createSpeedoHTML('mq7-send','MQ-7 Sender')+createSpeedoHTML('pm25-send','PM 2.5 Sender')+createSpeedoHTML('pm10-send','PM 10 Sender');
+        
+        document.getElementById('grid-recv').innerHTML = 
+            createSpeedoHTML('mq135-recv','MQ-135 Receiver') + 
+            createSpeedoHTML('mq7-recv','MQ-7 Receiver') + 
+            createSpeedoHTML('pm25-recv','PM 2.5 Receiver') + 
+            createSpeedoHTML('pm10-recv','PM 10 Receiver');
+            
+        document.getElementById('grid-send').innerHTML = 
+            createSpeedoHTML('mq135-send','MQ-135 Sender') + 
+            createSpeedoHTML('mq7-send','MQ-7 Sender') + 
+            createSpeedoHTML('pm25-send','PM 2.5 Sender') + 
+            createSpeedoHTML('pm10-send','PM 10 Sender');
     </script>
     <script src="assets/js/app.js"></script>
 </body>
