@@ -318,3 +318,47 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('gasChart')) initDashboardCharts();
     if(document.getElementById('chart-suhu')) initComparisonCharts();
 });
+// =========================================================================
+// 6. FITUR LOGIN ADMIN & KONTROL ALAT (DIKEMBALIKAN)
+// =========================================================================
+window.toggleLogin = function() {
+    let btn = document.getElementById('btn-login');
+    if (sessionStorage.getItem("isAdmin") === "true") {
+        sessionStorage.removeItem("isAdmin"); 
+        location.reload();
+    } else if (prompt("Masukkan Password Admin:") === "hafidz123") {
+        sessionStorage.setItem("isAdmin", "true"); 
+        location.reload();
+    } else { 
+        alert("Password Salah!"); 
+    }
+};
+
+window.setAlat = function(status) { 
+    db.ref('/kontrol/sistem').set(status); 
+};
+
+// Mendengarkan status alat (Start/Stop)
+db.ref('/kontrol/sistem').on('value', (snap) => {
+    let stat = snap.val(); 
+    let el = document.getElementById('status-sistem');
+    if(el) {
+        el.innerHTML = stat === 'START' ? `<i class="fa-solid fa-satellite-dish"></i> Status: AKTIF (START)` : `<i class="fa-solid fa-satellite-dish"></i> Status: MATI (STOP)`;
+        el.style.background = stat === 'START' ? "rgba(16, 185, 129, 0.2)" : "rgba(239, 68, 68, 0.2)"; 
+        el.style.color = stat === 'START' ? "#10b981" : "#ef4444";
+    }
+});
+
+// Cek UI Login saat halaman dimuat
+document.addEventListener('DOMContentLoaded', () => {
+    let panel = document.getElementById('admin-panel');
+    let btn = document.getElementById('btn-login');
+    
+    if (sessionStorage.getItem("isAdmin") === "true") {
+        if(panel) panel.style.display = 'block';
+        if(btn) btn.innerHTML = '<i class="fa-solid fa-unlock"></i> Logout Admin';
+    } else {
+        if(panel) panel.style.display = 'none';
+        if(btn) btn.innerHTML = '<i class="fa-solid fa-lock"></i> Login Admin';
+    }
+});
