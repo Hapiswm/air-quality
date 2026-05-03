@@ -7,166 +7,63 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --bg-color: #1a1e29;
-            --card-bg: #232936;
-            --text-color: #e0e6ed;
-            --accent-color: #f59e0b;
-            --shadow-light: rgba(255, 255, 255, 0.05);
-            --shadow-dark: rgba(0, 0, 0, 0.5);
-            
-            /* Warna ISPU */
-            --ispu-baik: #22c55e;
-            --ispu-sedang: #f59e0b;
-            --ispu-tidak-sehat: #ef4444;
-            --ispu-sangat-tidak-sehat: #9333ea;
-            --ispu-berbahaya: #000000;
+            --bg: #1a1e29; --card: #232936; --txt: #e0e6ed;
+            --shadow-light: rgba(255,255,255,0.05); --shadow-dark: rgba(0,0,0,0.5);
         }
+        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; }
+        
+        /* Navbar */
+        .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: var(--card); border-radius: 15px; box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light); margin-bottom: 30px; }
+        .nav-links a { color: var(--txt); text-decoration: none; padding: 10px 20px; border-radius: 10px; box-shadow: 5px 5px 10px var(--shadow-dark), -2px -2px 5px var(--shadow-light); margin-left: 10px; }
+        .nav-links a.active { color: #3b82f6; box-shadow: inset 3px 3px 7px var(--shadow-dark); }
+        
+        /* Weather Panel */
+        .weather-panel { display: flex; justify-content: center; gap: 30px; margin-bottom: 30px; }
+        .w-card { background: var(--card); padding: 15px 40px; border-radius: 20px; text-align: center; box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light); }
+        .w-val { font-size: 28px; font-weight: bold; color: #60a5fa; margin: 10px 0; }
+        .w-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-
-        /* Navbar Neomorphic */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 30px;
-            background: var(--card-bg);
-            border-radius: 15px;
-            box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light);
-            margin-bottom: 30px;
-        }
-
-        .nav-brand { color: var(--accent-color); font-weight: bold; font-size: 24px; display: flex; align-items: center; gap: 10px; }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-btn {
-            background: var(--card-bg);
-            border: none;
-            color: var(--text-color);
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 5px 5px 10px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-        .nav-btn.active { color: #3b82f6; box-shadow: inset 3px 3px 7px var(--shadow-dark); }
-
-        /* Panel Cuaca (Suhu & Kelembaban) di Atas Tengah */
-        .weather-container {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .weather-card {
-            background: var(--card-bg);
-            padding: 15px 40px;
-            border-radius: 20px;
-            box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light);
-            text-align: center;
-            min-width: 150px;
-        }
-
-        .weather-val { font-size: 28px; font-weight: bold; margin: 10px 0; color: #60a5fa; }
-        .weather-label { font-size: 12px; text-transform: uppercase; color: #94a3b8; }
-
-        /* Grid Utama Polutan */
-        .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .status-live { color: var(--ispu-baik); font-size: 14px; display: flex; align-items: center; gap: 5px; }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 15px 15px 30px var(--shadow-dark), -5px -5px 15px var(--shadow-light);
-            text-align: center;
-            border-top: 3px solid transparent; /* Nanti berubah sesuai status ISPU */
-            transition: border-color 0.5s;
-        }
-
-        .card-title { font-size: 13px; color: #94a3b8; margin-bottom: 15px; font-weight: 600; }
-        .card-value { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
-        .card-unit { font-size: 14px; color: #64748b; font-weight: normal; }
-        .emoji { font-size: 40px; margin: 15px 0; display: block; }
-        .ispu-status { font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-
-        @media (max-width: 1024px) {
-            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        /* Grid Sensor */
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
+        .card { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; box-shadow: 15px 15px 30px var(--shadow-dark), -5px -5px 15px var(--shadow-light); border-top: 4px solid #333; transition: all 0.3s; }
+        .c-title { color: #94a3b8; font-size: 13px; font-weight: bold; margin-bottom: 15px; }
+        .c-val { font-size: 24px; font-weight: bold; }
+        .c-unit { font-size: 14px; color: #64748b; }
+        .c-emoji { font-size: 40px; display: block; margin: 15px 0; }
+        .c-status { font-weight: bold; letter-spacing: 1px; font-size: 14px; }
+        
+        .header-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-
     <nav class="navbar">
-        <div class="nav-brand"><i class="fas fa-leaf"></i> AIR QUALITY</div>
+        <div style="color:#f59e0b; font-size:24px; font-weight:bold;"><i class="fas fa-leaf"></i> NANO BANANA V2</div>
         <div class="nav-links">
-            <a href="index.html" class="nav-btn active">Dashboard</a>
-            <a href="speedometer.html" class="nav-btn">Speedometer</a>
-            <a href="grafik.html" class="nav-btn">Grafik</a>
-            <a href="history.html" class="nav-btn">History</a>
-            <a href="#" class="nav-btn" style="background: #3b82f622;"><i class="fas fa-lock"></i> Login Admin</a>
+            <a href="index.html" class="active">Dashboard</a>
+            <a href="speedometer.html">Speedometer</a>
+            <a href="history.html">History</a>
         </div>
     </nav>
 
-    <div class="weather-container">
-        <div class="weather-card">
-            <div class="weather-label"><i class="fas fa-thermometer-half"></i> Suhu</div>
-            <div class="weather-val" id="val-temp">--.- °C</div>
-        </div>
-        <div class="weather-card">
-            <div class="weather-label"><i class="fas fa-tint"></i> Kelembaban</div>
-            <div class="weather-val" id="val-hum">-- %</div>
-        </div>
+    <div class="weather-panel">
+        <div class="w-card"><div class="w-label"><i class="fas fa-thermometer-half"></i> Suhu Ruangan</div><div class="w-val" id="val-suhu">-- °C</div></div>
+        <div class="w-card"><div class="w-label"><i class="fas fa-tint"></i> Kelembaban</div><div class="w-val" id="val-hum">-- %</div></div>
     </div>
 
-    <div class="section-title">
-        <h2><i class="fas fa-home"></i> Pemantauan Real-time (Indoor)</h2>
-        <div class="status-live"><i class="fas fa-satellite-dish"></i> TERHUBUNG (LIVE)</div>
+    <div class="header-title">
+        <h2><i class="fas fa-microchip"></i> Pemantauan Kualitas Udara (Indoor)</h2>
+        <div style="color:#22c55e;"><i class="fas fa-wifi"></i> LIVE</div>
     </div>
 
-    <div class="dashboard-grid">
-        <div class="card" id="card-no2-in">
-            <div class="card-title">NO2 (MiCS-6814)</div>
-            <div class="card-value"><span id="val-no2-in">--.--</span> <span class="card-unit">µg/m³</span></div>
-            <span class="emoji" id="emo-no2-in">😐</span>
-            <div class="ispu-status" id="stat-no2-in">WAITING...</div>
-        </div>
-        <div class="card" id="card-co-in">
-            <div class="card-title">CO (MiCS-6814)</div>
-            <div class="card-value"><span id="val-co-in">--.--</span> <span class="card-unit">µg/m³</span></div>
-            <span class="emoji" id="emo-co-in">😐</span>
-            <div class="ispu-status" id="stat-co-in">WAITING...</div>
-        </div>
-        <div class="card" id="card-pm25-in">
-            <div class="card-title">PM 2.5 (PMS5003)</div>
-            <div class="card-value"><span id="val-pm25-in">--.--</span> <span class="card-unit">µg/m³</span></div>
-            <span class="emoji" id="emo-pm25-in">😐</span>
-            <div class="ispu-status" id="stat-pm25-in">WAITING...</div>
-        </div>
-        <div class="card" id="card-pm10-in">
-            <div class="card-title">PM 10 (PMS5003)</div>
-            <div class="card-value"><span id="val-pm10-in">--.--</span> <span class="card-unit">µg/m³</span></div>
-            <span class="emoji" id="emo-pm10-in">😐</span>
-            <div class="ispu-status" id="stat-pm10-in">WAITING...</div>
-        </div>
+    <div class="grid">
+        <div class="card" id="card-no2"><div class="c-title">NO2 (MiCS-6814)</div><div class="c-val"><span id="val-no2">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-no2">⏳</span><div class="c-status" id="stat-no2">LOADING</div></div>
+        <div class="card" id="card-co"><div class="c-title">CO (MiCS-6814)</div><div class="c-val"><span id="val-co">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-co">⏳</span><div class="c-status" id="stat-co">LOADING</div></div>
+        <div class="card" id="card-pm25"><div class="c-title">PM 2.5 (PMS5003)</div><div class="c-val"><span id="val-pm25">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-pm25">⏳</span><div class="c-status" id="stat-pm25">LOADING</div></div>
+        <div class="card" id="card-pm10"><div class="c-title">PM 10 (PMS5003)</div><div class="c-val"><span id="val-pm10">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-pm10">⏳</span><div class="c-status" id="stat-pm10">LOADING</div></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="js/app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
