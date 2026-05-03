@@ -9,25 +9,22 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        /* TEMA PUTIH */
-        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; }
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --accent-blue: #2563eb; }
         body { background-color: var(--bg); color: var(--text); }
-        .topbar { background: var(--card); border-bottom: 1px solid var(--border); color: var(--text); }
+        .topbar { background: var(--card); border-bottom: 1px solid var(--border); }
         .topbar-brand, .topbar-menu a { color: var(--text); }
-        .topbar-menu a.active { background: #2563eb; color: white; }
+        .topbar-menu a.active { background: var(--accent-blue); color: white; }
         
-        /* CARD SPEEDO PUTIH */
-        .speedo-card { text-align: center; padding: 30px 15px 25px 15px; background: #ffffff; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
-        .speedo-title { font-weight: 800; margin-bottom: 20px; color: #1e293b; font-size: 16px; }
+        .speedo-card { text-align: center; padding: 25px 15px; background: var(--card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .speedo-title { font-weight: 800; margin-bottom: 15px; color: var(--text); font-size: 15px; }
         .speedo-container { position: relative; width: 100%; max-width: 260px; margin: 0 auto; }
         .speedo-svg { width: 100%; display: block; overflow: visible; }
-        
         .speedo-val-wrap { margin-top: -15px; display: flex; flex-direction: column; align-items: center; min-height: 80px; }
-        .speedo-val { font-size: 44px; font-weight: 900; color: #1e293b; font-family: 'Segoe UI', sans-serif; letter-spacing: -1px; margin-bottom: 8px; }
-        .speedo-unit { font-size: 16px; font-weight: 600; color: #64748b; margin-left: 4px; }
-        .speedo-stat { font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        .speedo-val { font-size: 40px; font-weight: 900; color: var(--text); font-family: 'Segoe UI', sans-serif; letter-spacing: -1px; margin-bottom: 5px; }
+        .speedo-unit { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-left: 4px; }
+        .speedo-stat { font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
         .speedo-needle { transform-origin: 120px 120px; transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
-        .card-grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .grid-6 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
     </style>
 </head>
 <body>
@@ -43,19 +40,19 @@
     
     <div class="page-wrap">
         <div class="page-header" style="text-align: center;">
-            <h1 style="color:#1e293b;"><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
-            <p style="color:#64748b;">Visualisasi presisi gaya meteran sesuai standar ISPU (0 - 500).</p>
+            <h1 style="color:var(--text);"><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
+            <p style="color:var(--text-muted);">Visualisasi presisi sesuai standar ISPU.</p>
         </div>
-        <div class="section-title" style="color: #2563eb; margin-top: 20px; border-bottom:2px solid #e2e8f0; padding-bottom:5px; font-weight:bold;"><i class="fa-solid fa-microchip"></i> Area Node Receiver</div>
-        <div class="card-grid-6" id="grid-recv"></div>
+        <div class="section-title" style="color: var(--accent-blue); margin-top: 20px; font-weight:bold; border-bottom:2px solid var(--border); padding-bottom:5px;"><i class="fa-solid fa-microchip"></i> Area Node Receiver</div>
+        <div class="grid-6" id="grid-recv"></div>
         
-        <div class="section-title" style="color: #2563eb; margin-top: 30px; border-bottom:2px solid #e2e8f0; padding-bottom:5px; font-weight:bold;"><i class="fa-solid fa-satellite-dish"></i> Area Node Sender</div>
-        <div class="card-grid-6" id="grid-send"></div>
+        <div class="section-title" style="color: var(--accent-blue); margin-top: 30px; font-weight:bold; border-bottom:2px solid var(--border); padding-bottom:5px;"><i class="fa-solid fa-satellite-dish"></i> Area Node Sender</div>
+        <div class="grid-6" id="grid-send"></div>
     </div>
     
     <script>
-        // Skala Speedo sekarang 0 - 500 menyesuaikan ISPU
-        function createSpeedoHTML(id, title) {
+        // Fungsi untuk membuat Speedometer ISPU (0-500)
+        function createSpeedoISPU(id, title) {
             return `
             <div class="speedo-card" id="card-${id}">
                 <div class="speedo-title">${title}</div>
@@ -63,12 +60,11 @@
                     <svg viewBox="0 0 240 140" class="speedo-svg">
                         <defs><circle id="b-${id}" cx="120" cy="120" r="75" fill="none" stroke-width="16" /></defs>
                         <use href="#b-${id}" stroke="#22c55e" stroke-dasharray="47 470" transform="rotate(180 120 120)" />
-                        <use href="#b-${id}" stroke="#eab308" stroke-dasharray="47 470" transform="rotate(216 120 120)" />
-                        <use href="#b-${id}" stroke="#ef4444" stroke-dasharray="47 470" transform="rotate(252 120 120)" />
-                        <use href="#b-${id}" stroke="#a855f7" stroke-dasharray="47 470" transform="rotate(288 120 120)" />
+                        <use href="#b-${id}" stroke="#3b82f6" stroke-dasharray="47 470" transform="rotate(216 120 120)" />
+                        <use href="#b-${id}" stroke="#f59e0b" stroke-dasharray="47 470" transform="rotate(252 120 120)" />
+                        <use href="#b-${id}" stroke="#ef4444" stroke-dasharray="47 470" transform="rotate(288 120 120)" />
                         <use href="#b-${id}" stroke="#000000" stroke-dasharray="47 470" transform="rotate(324 120 120)" />
                         <use href="#b-${id}" stroke="#cbd5e1" stroke-dasharray="2 7.4" transform="rotate(180 120 120)" />
-                        
                         <text x="35" y="118" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">0</text>
                         <text x="50" y="75" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">50</text>
                         <text x="85" y="48" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">100</text>
@@ -76,29 +72,40 @@
                         <text x="155" y="48" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">300</text>
                         <text x="190" y="75" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">400</text>
                         <text x="205" y="118" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">500</text>
-                        
-                        <g id="needle-${id}" class="speedo-needle">
-                            <polygon points="115,120 125,120 120,35" fill="#2563eb" />
-                        </g>
+                        <g id="needle-${id}" class="speedo-needle"><polygon points="115,120 125,120 120,35" fill="#1e293b" /></g>
                     </svg>
-                    
-                    <div class="speedo-val-wrap">
-                        <div id="val-${id}" class="speedo-val">--</div>
-                        <div id="stat-${id}" class="speedo-stat" style="color:#64748b;">MEMUAT...</div>
-                    </div>
+                    <div class="speedo-val-wrap"><div id="val-${id}" class="speedo-val">--</div><div id="stat-${id}" class="speedo-stat" style="color:#64748b;">MEMUAT...</div></div>
                 </div>
             </div>`;
         }
         
+        // Fungsi untuk membuat Speedometer Cuaca Biasa (Biru)
+        function createSpeedoWeather(id, title) {
+            return `
+            <div class="speedo-card" id="card-${id}">
+                <div class="speedo-title">${title}</div>
+                <div class="speedo-container">
+                    <svg viewBox="0 0 240 140" class="speedo-svg">
+                        <path d="M 45 120 A 75 75 0 0 1 195 120" fill="none" stroke="#e2e8f0" stroke-width="16"/>
+                        <path id="arc-${id}" d="M 45 120 A 75 75 0 0 1 195 120" fill="none" stroke="#3b82f6" stroke-width="16" stroke-dasharray="235" stroke-dashoffset="235"/>
+                        <text x="35" y="118" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">Min</text>
+                        <text x="205" y="118" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">Max</text>
+                        <g id="needle-${id}" class="speedo-needle"><polygon points="115,120 125,120 120,35" fill="#1e293b" /></g>
+                    </svg>
+                    <div class="speedo-val-wrap"><div id="val-${id}" class="speedo-val">--</div><div id="stat-${id}" class="speedo-stat" style="color:#3b82f6;">CUACA LOKAL</div></div>
+                </div>
+            </div>`;
+        }
+
         document.getElementById('grid-recv').innerHTML = 
-            createSpeedoHTML('suhu-recv','Suhu Receiver') + createSpeedoHTML('hum-recv','Hum Receiver') +
-            createSpeedoHTML('no2-recv','NO2 Receiver') + createSpeedoHTML('co-recv','CO Receiver') + 
-            createSpeedoHTML('pm25-recv','PM 2.5 Receiver') + createSpeedoHTML('pm10-recv','PM 10 Receiver');
+            createSpeedoWeather('suhu-recv','Suhu Receiver') + createSpeedoWeather('hum-recv','Hum Receiver') +
+            createSpeedoISPU('no2-recv','NO2 Receiver') + createSpeedoISPU('co-recv','CO Receiver') + 
+            createSpeedoISPU('pm25-recv','PM 2.5 Receiver') + createSpeedoISPU('pm10-recv','PM 10 Receiver');
             
         document.getElementById('grid-send').innerHTML = 
-            createSpeedoHTML('suhu-send','Suhu Sender') + createSpeedoHTML('hum-send','Hum Sender') +
-            createSpeedoHTML('no2-send','NO2 Sender') + createSpeedoHTML('co-send','CO Sender') + 
-            createSpeedoHTML('pm25-send','PM 2.5 Sender') + createSpeedoHTML('pm10-send','PM 10 Sender');
+            createSpeedoWeather('suhu-send','Suhu Sender') + createSpeedoWeather('hum-send','Hum Sender') +
+            createSpeedoISPU('no2-send','NO2 Sender') + createSpeedoISPU('co-send','CO Sender') + 
+            createSpeedoISPU('pm25-send','PM 2.5 Sender') + createSpeedoISPU('pm10-send','PM 10 Sender');
     </script>
     <script src="assets/js/app.js"></script>
 </body>
