@@ -9,11 +9,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        /* PAKSAAN TEMA PUTIH */
-        :root { --bg: #ffffff; --card: #f8fafc; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
-        body, .page-wrap { background-color: var(--bg) !important; background: var(--bg) !important; color: var(--text) !important; }
-        h1, h2, h3, p, div { color: var(--text); }
+        /* PERBAIKAN TEMA PUTIH & TEKS GELAP */
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
+        body, .page-wrap { background: var(--bg) !important; color: var(--text) !important; }
         
+        .page-header h1, .page-header p, h1, h2, h3, p { color: var(--text) !important; }
+        .page-header p { color: var(--text-muted) !important; }
+
         .topbar { background: var(--card) !important; border-bottom: 1px solid var(--border); }
         .topbar-brand, .topbar-menu a { color: var(--text) !important; }
         .topbar-menu a.active { background: var(--accent-blue) !important; color: white !important; }
@@ -23,6 +25,7 @@
         .w-val { font-size: 24px; font-weight: bold; color: var(--accent-blue) !important; margin-top: 5px;}
         .w-lbl { font-size: 13px; font-weight: bold; color: var(--text-muted) !important; text-transform: uppercase; }
         .w-divider { border-left: 2px solid var(--border); }
+        
         .section-title { color: var(--accent-blue) !important; margin-top: 20px; font-weight:bold; border-bottom:2px solid var(--border); padding-bottom:5px; }
 
         .speedo-card { text-align: center; padding: 25px 15px; background: var(--card) !important; border-radius: 16px; border: 1px solid var(--border) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; }
@@ -50,7 +53,7 @@
     <div class="page-wrap">
         <div class="page-header" style="text-align: center;">
             <h1><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
-            <p style="color:var(--text-muted) !important;">Visualisasi presisi gaya meteran sesuai standar ISPU (0 - 500).</p>
+            <p>Visualisasi presisi gaya meteran sesuai standar ISPU (0 - 500).</p>
         </div>
 
         <div class="weather-panel">
