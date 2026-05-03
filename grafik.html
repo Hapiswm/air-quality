@@ -10,11 +10,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* PAKSAAN TEMA PUTIH */
-        :root { --bg: #ffffff; --card: #f8fafc; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
-        body, .page-wrap { background-color: var(--bg) !important; background: var(--bg) !important; color: var(--text) !important; }
-        h1, h2, h3, p, div { color: var(--text); }
+        /* PERBAIKAN TEMA PUTIH & TEKS GELAP */
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
+        body, .page-wrap { background: var(--bg) !important; color: var(--text) !important; }
         
+        .page-header h1, .page-header p, h1, h2, h3, p, span { color: var(--text); }
+        .page-header p { color: var(--text-muted) !important; }
+
         .topbar { background: var(--card) !important; border-bottom: 1px solid var(--border); }
         .topbar-brand, .topbar-menu a { color: var(--text) !important; }
         .topbar-menu a.active { background: var(--accent-blue) !important; color: white !important; }
@@ -39,7 +41,7 @@
         <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div>
                 <h1><i class="fa-solid fa-chart-line"></i> Grafik Komparasi Transmisi</h1>
-                <p style="color: var(--text-muted) !important;">Pantau fluktuasi Node Receiver vs Node Sender berdasarkan rentang waktu.</p>
+                <p>Pantau fluktuasi Node Receiver vs Node Sender berdasarkan rentang waktu.</p>
             </div>
             
             <div style="background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 600px;">
@@ -56,7 +58,7 @@
                     <input type="datetime-local" id="chart-start" class="date-input">
                     <span style="color: var(--text); font-weight: bold;">s/d</span>
                     <input type="datetime-local" id="chart-end" class="date-input">
-                    <button onclick="applyCustomChart()" style="background: var(--accent-blue); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight:bold;"><i class="fa-solid fa-magnifying-glass"></i> Tampilkan</button>
+                    <button onclick="applyCustomChart()" style="background: var(--accent-blue); color: white !important; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight:bold;"><i class="fa-solid fa-magnifying-glass"></i> Tampilkan</button>
                 </div>
             </div>
         </div>
