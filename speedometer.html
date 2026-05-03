@@ -9,27 +9,28 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --accent-blue: #2563eb; }
-        body { background-color: var(--bg); color: var(--text); }
-        .topbar { background: var(--card); border-bottom: 1px solid var(--border); }
-        .topbar-brand, .topbar-menu a { color: var(--text); }
-        .topbar-menu a.active { background: var(--accent-blue); color: white; }
+        /* PAKSAAN TEMA PUTIH */
+        :root { --bg: #ffffff; --card: #f8fafc; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
+        body, .page-wrap { background-color: var(--bg) !important; background: var(--bg) !important; color: var(--text) !important; }
+        h1, h2, h3, p, div { color: var(--text); }
         
-        /* Panel Suhu & Hum persis seperti Dashboard */
-        .weather-panel { display: flex; justify-content: space-around; background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); align-items: center;}
+        .topbar { background: var(--card) !important; border-bottom: 1px solid var(--border); }
+        .topbar-brand, .topbar-menu a { color: var(--text) !important; }
+        .topbar-menu a.active { background: var(--accent-blue) !important; color: white !important; }
+        
+        .weather-panel { display: flex; justify-content: space-around; background: var(--card) !important; padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); align-items: center;}
         .w-item { text-align: center; flex: 1; }
-        .w-val { font-size: 24px; font-weight: bold; color: var(--accent-blue); margin-top: 5px;}
-        .w-lbl { font-size: 13px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
+        .w-val { font-size: 24px; font-weight: bold; color: var(--accent-blue) !important; margin-top: 5px;}
+        .w-lbl { font-size: 13px; font-weight: bold; color: var(--text-muted) !important; text-transform: uppercase; }
         .w-divider { border-left: 2px solid var(--border); }
+        .section-title { color: var(--accent-blue) !important; margin-top: 20px; font-weight:bold; border-bottom:2px solid var(--border); padding-bottom:5px; }
 
-        /* Speedo CSS */
-        .speedo-card { text-align: center; padding: 25px 15px; background: var(--card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .speedo-title { font-weight: 800; margin-bottom: 15px; color: var(--text); font-size: 15px; }
+        .speedo-card { text-align: center; padding: 25px 15px; background: var(--card) !important; border-radius: 16px; border: 1px solid var(--border) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; }
+        .speedo-title { font-weight: 800; margin-bottom: 15px; color: var(--text) !important; font-size: 15px; }
         .speedo-container { position: relative; width: 100%; max-width: 260px; margin: 0 auto; }
         .speedo-svg { width: 100%; display: block; overflow: visible; }
         .speedo-val-wrap { margin-top: -15px; display: flex; flex-direction: column; align-items: center; min-height: 80px; }
-        .speedo-val { font-size: 40px; font-weight: 900; color: var(--text); font-family: 'Segoe UI', sans-serif; letter-spacing: -1px; margin-bottom: 5px; }
-        .speedo-unit { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-left: 4px; }
+        .speedo-val { font-size: 40px; font-weight: 900; color: var(--text) !important; font-family: 'Segoe UI', sans-serif; letter-spacing: -1px; margin-bottom: 5px; }
         .speedo-stat { font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
         .speedo-needle { transform-origin: 120px 120px; transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
         .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
@@ -48,8 +49,8 @@
     
     <div class="page-wrap">
         <div class="page-header" style="text-align: center;">
-            <h1 style="color:var(--text);"><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
-            <p style="color:var(--text-muted);">Visualisasi presisi gaya meteran sesuai standar ISPU (0 - 500).</p>
+            <h1><i class="fa-solid fa-gauge-high"></i> Indikator Speedometer</h1>
+            <p style="color:var(--text-muted) !important;">Visualisasi presisi gaya meteran sesuai standar ISPU (0 - 500).</p>
         </div>
 
         <div class="weather-panel">
@@ -59,10 +60,10 @@
             <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Sender</div><div class="w-val" id="val-hum-send-spd">0.0 %</div></div>
         </div>
 
-        <div class="section-title" style="color: var(--accent-blue); margin-top: 20px; font-weight:bold; border-bottom:2px solid var(--border); padding-bottom:5px;"><i class="fa-solid fa-microchip"></i> Area Node Receiver</div>
+        <div class="section-title"><i class="fa-solid fa-microchip"></i> Area Node Receiver</div>
         <div class="grid-4" id="grid-recv"></div>
         
-        <div class="section-title" style="color: var(--accent-blue); margin-top: 30px; font-weight:bold; border-bottom:2px solid var(--border); padding-bottom:5px;"><i class="fa-solid fa-satellite-dish"></i> Area Node Sender</div>
+        <div class="section-title" style="margin-top: 30px;"><i class="fa-solid fa-satellite-dish"></i> Area Node Sender</div>
         <div class="grid-4" id="grid-send"></div>
     </div>
     
@@ -80,16 +81,16 @@
                         <use href="#b-${id}" stroke="#ef4444" stroke-dasharray="47 470" transform="rotate(288 120 120)" />
                         <use href="#b-${id}" stroke="#000000" stroke-dasharray="47 470" transform="rotate(324 120 120)" />
                         <use href="#b-${id}" stroke="#cbd5e1" stroke-dasharray="2 7.4" transform="rotate(180 120 120)" />
-                        <text x="35" y="118" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">0</text>
-                        <text x="50" y="75" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">50</text>
-                        <text x="85" y="48" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">100</text>
-                        <text x="120" y="36" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">200</text>
-                        <text x="155" y="48" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">300</text>
-                        <text x="190" y="75" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">400</text>
-                        <text x="205" y="118" font-size="11" fill="#64748b" font-weight="bold" text-anchor="middle">500</text>
-                        <g id="needle-${id}" class="speedo-needle"><polygon points="115,120 125,120 120,35" fill="#1e293b" /></g>
+                        <text x="35" y="118" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">0</text>
+                        <text x="50" y="75" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">50</text>
+                        <text x="85" y="48" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">100</text>
+                        <text x="120" y="36" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">200</text>
+                        <text x="155" y="48" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">300</text>
+                        <text x="190" y="75" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">400</text>
+                        <text x="205" y="118" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">500</text>
+                        <g id="needle-${id}" class="speedo-needle"><polygon points="115,120 125,120 120,35" fill="#0f172a" /></g>
                     </svg>
-                    <div class="speedo-val-wrap"><div id="val-${id}" class="speedo-val">--</div><div id="stat-${id}" class="speedo-stat" style="color:#64748b;">MEMUAT...</div></div>
+                    <div class="speedo-val-wrap"><div id="val-${id}" class="speedo-val">--</div><div id="stat-${id}" class="speedo-stat" style="color:#475569;">MEMUAT...</div></div>
                 </div>
             </div>`;
         }
