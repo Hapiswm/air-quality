@@ -3,47 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Quality - Dashboard</title>
+    <title>Air Quality - Dashboard Final</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
-        /* PERBAIKAN TEMA PUTIH & TEKS GELAP */
-        :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
-        body, .page-wrap { background: var(--bg) !important; color: var(--text) !important; }
-        
-        /* Memaksa semua judul dan teks menjadi gelap */
-        .page-header h1, .page-header p, h1, h2, h3, p, span, div { color: var(--text); }
-        .page-header p { color: var(--text-muted) !important; font-weight: 500; }
-        
-        .topbar { background: var(--card) !important; border-bottom: 1px solid var(--border); }
-        .topbar-brand, .topbar-menu a { color: var(--text) !important; }
-        .topbar-menu a.active { background: var(--accent-blue) !important; color: white !important; }
-        
-        .glass-card { background: var(--card) !important; border: 1px solid var(--border) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; }
-        .sensor-title { color: var(--text-muted) !important; font-weight: bold; }
-        .sensor-val { color: var(--text) !important; }
-        .section-title { color: var(--text) !important; border-bottom: 2px solid var(--border); padding-bottom: 5px; margin-bottom: 15px; font-weight: bold;}
-        
-        /* Panel Suhu & Hum */
-        .weather-panel { display: flex; justify-content: space-around; background: var(--card) !important; padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); align-items: center;}
+        /* CSS UNTUK MEMAKSA TAMPILAN PUTIH & TEKS GELAP (MENGATASI OVERRIDE STYLE.CSS) */
+        :root { 
+            --bg-putih: #ffffff; 
+            --teks-gelap: #0f172a; 
+            --teks-abu: #475569; 
+            --border-abu: #cbd5e1; 
+            --biru-akses: #2563eb; 
+        }
+
+        body, .page-wrap { 
+            background-color: var(--bg-putih) !important; 
+            background: var(--bg-putih) !important; 
+            color: var(--teks-gelap) !important; 
+        }
+
+        /* Navigasi */
+        .topbar { background: #f8fafc !important; border-bottom: 1px solid var(--border-abu); }
+        .topbar-brand, .topbar-menu a { color: var(--teks-gelap) !important; }
+        .topbar-menu a.active { background: var(--biru-akses) !important; color: white !important; }
+
+        /* Judul & Teks */
+        h1, h2, h3, p, span, div, label { color: var(--teks-gelap) !important; }
+        .page-header p { color: var(--teks-abu) !important; font-weight: 500; }
+        .section-title { color: var(--teks-gelap) !important; font-weight: 800; border-bottom: 2px solid var(--border-abu); padding-bottom: 5px; margin-bottom: 15px; margin-top: 30px; text-transform: uppercase; font-size: 16px;}
+
+        /* Panel Cuaca (Suhu & Hum) */
+        .weather-panel { 
+            display: flex; 
+            justify-content: space-around; 
+            background: #ffffff !important; 
+            padding: 20px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-abu); 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            align-items: center;
+        }
         .w-item { text-align: center; flex: 1; }
-        .w-val { font-size: 24px; font-weight: bold; color: var(--accent-blue) !important; margin-top: 5px;}
-        .w-lbl { font-size: 13px; font-weight: bold; color: var(--text-muted) !important; text-transform: uppercase; }
-        .w-divider { border-left: 2px solid var(--border); }
+        .w-val { font-size: 26px; font-weight: 800; color: var(--biru-akses) !important; margin-top: 5px;}
+        .w-lbl { font-size: 13px; font-weight: bold; color: var(--teks-abu) !important; text-transform: uppercase; }
+        .w-divider { border-left: 2px solid var(--border-abu); }
+
+        /* Kotak Sensor (8 Kotak) */
+        .glass-card { 
+            background: #ffffff !important; 
+            border: 1px solid var(--border-abu) !important; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; 
+            border-radius: 15px !important;
+        }
+        .sensor-title { color: var(--teks-abu) !important; font-weight: bold; font-size: 12px; }
+        .sensor-val { color: var(--teks-gelap) !important; font-weight: 800; margin: 10px 0; }
+        .sensor-stat { font-weight: 800; font-size: 14px; }
+
+        /* Panel Kontrol Admin */
+        #admin-panel { 
+            background: #f1f5f9; 
+            padding: 20px; 
+            border-radius: 12px; 
+            border: 1px solid var(--biru-akses); 
+            margin-bottom: 25px; 
+            text-align: center;
+        }
+
+        /* Grafik Live */
+        .chart-box { background: white !important; border: 1px solid var(--border-abu) !important; border-radius: 12px; padding: 10px; }
     </style>
 </head>
 <body>
+
     <div class="topbar">
-        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> AIR QUALITY</div>
+        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> AIR QUALITY MONITORING</div>
         <div class="topbar-menu">
             <a href="index.html" class="active">Dashboard</a>
             <a href="speedometer.html">Speedometer</a>
             <a href="grafik.html">Grafik</a>
             <a href="history.html">History</a>
-            <button id="btn-login" onclick="toggleLogin()" style="background: rgba(37, 99, 235, 0.1); border: 1px solid #2563eb; color: #2563eb; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-left: 15px; font-weight: bold;">
+            <button id="btn-login" onclick="toggleLogin()" style="background: rgba(37, 99, 235, 0.1); border: 1px solid #2563eb; color: #2563eb; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-left: 15px; font-weight: bold;">
                 <i class="fa-solid fa-lock"></i> Login Admin
             </button>
         </div>
@@ -54,54 +99,122 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h1><i class="fa-solid fa-house"></i> Pemantauan Real-time</h1>
-                    <p>Dashboard Kualitas Udara (Node Receiver vs Node Sender)</p>
+                    <p>Sistem Monitoring Kualitas Udara (Node Receiver & Node Sender)</p>
                 </div>
-                <div id="conn-status" class="status-badge offline" style="background:#f1f5f9; color:#475569; padding:8px 15px; border-radius:20px; border:1px solid #cbd5e1;"><i class="fa-solid fa-cloud-bolt"></i> <span id="status-text">MENUNGGU DATA...</span></div>
+                <div id="conn-status" class="status-badge offline" style="background:#f1f5f9; color:#475569; padding:10px 20px; border-radius:20px; border:1px solid #cbd5e1; font-weight: bold;"><i class="fa-solid fa-cloud-bolt"></i> <span id="status-text">MENUNGGU DATA...</span></div>
+            </div>
+        </div>
+
+        <div id="admin-panel" style="display: none;">
+            <h3 style="margin-top: 0; margin-bottom: 15px;"><i class="fa-solid fa-gear"></i> Kontrol Sistem (Admin Only)</h3>
+            <button onclick="setAlat('START')" style="background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-right: 10px;">
+                <i class="fa-solid fa-play"></i> AKTIFKAN SISTEM
+            </button>
+            <button onclick="setAlat('STOP')" style="background: #ef4444; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                <i class="fa-solid fa-stop"></i> NONAKTIFKAN SISTEM
+            </button>
+            <div id="status-sistem" style="margin-top: 15px; padding: 8px; border-radius: 6px; font-weight: bold; display: inline-block;">
+                Status Alat: Memuat...
             </div>
         </div>
 
         <div class="weather-panel">
-            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Receiver</div><div class="w-val" id="val-suhu-recv">0.0 °C</div></div>
-            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Receiver</div><div class="w-val" id="val-hum-recv">0.0 %</div></div>
-            <div class="w-item w-divider"><div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Sender</div><div class="w-val" id="val-suhu-send">0.0 °C</div></div>
-            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Sender</div><div class="w-val" id="val-hum-send">0.0 %</div></div>
+            <div class="w-item">
+                <div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Receiver</div>
+                <div class="w-val" id="val-suhu-recv">0.0 °C</div>
+            </div>
+            <div class="w-item">
+                <div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Receiver</div>
+                <div class="w-val" id="val-hum-recv">0.0 %</div>
+            </div>
+            <div class="w-divider"></div>
+            <div class="w-item">
+                <div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Sender</div>
+                <div class="w-val" id="val-suhu-send">0.0 °C</div>
+            </div>
+            <div class="w-item">
+                <div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Sender</div>
+                <div class="w-val" id="val-hum-send">0.0 %</div>
+            </div>
         </div>
 
-        <div class="section-title"><i class="fa-solid fa-satellite-dish"></i> INDIKATOR NODE RECEIVER</div>
+        <div class="section-title"><i class="fa-solid fa-satellite-dish"></i> Indikator Node Receiver</div>
         <div class="card-grid">
-            <div class="glass-card sensor-card" id="card-no2-recv"><div class="sensor-title">NO2 (Receiver)</div><div class="sensor-val"><span id="val-no2-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-no2-recv">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-co-recv"><div class="sensor-title">CO (Receiver)</div><div class="sensor-val"><span id="val-co-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-co-recv">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm25-recv"><div class="sensor-title">PM 2.5 (Receiver)</div><div class="sensor-val"><span id="val-pm25-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25-recv">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm10-recv"><div class="sensor-title">PM 10 (Receiver)</div><div class="sensor-val"><span id="val-pm10-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10-recv">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-no2-recv">
+                <div class="sensor-title">NO2 (Receiver)</div>
+                <div class="sensor-val"><span id="val-no2-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-no2-recv" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-no2-recv">MEMUAT...</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-co-recv">
+                <div class="sensor-title">CO (Receiver)</div>
+                <div class="sensor-val"><span id="val-co-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-co-recv" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-co-recv">MEMUAT...</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-pm25-recv">
+                <div class="sensor-title">PM 2.5 (Receiver)</div>
+                <div class="sensor-val"><span id="val-pm25-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-pm25-recv" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-pm25-recv">MEMUAT...</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-pm10-recv">
+                <div class="sensor-title">PM 10 (Receiver)</div>
+                <div class="sensor-val"><span id="val-pm10-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-pm10-recv" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-pm10-recv">MEMUAT...</div>
+            </div>
         </div>
 
-        <div class="section-title" style="margin-top:30px;"><i class="fa-solid fa-tower-broadcast"></i> INDIKATOR NODE SENDER</div>
+        <div class="section-title"><i class="fa-solid fa-tower-broadcast"></i> Indikator Node Sender</div>
         <div class="card-grid">
-            <div class="glass-card sensor-card" id="card-no2-send"><div class="sensor-title">NO2 (Sender)</div><div class="sensor-val"><span id="val-no2-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-no2-send">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-co-send"><div class="sensor-title">CO (Sender)</div><div class="sensor-val"><span id="val-co-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-co-send">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm25-send"><div class="sensor-title">PM 2.5 (Sender)</div><div class="sensor-val"><span id="val-pm25-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25-send">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm10-send"><div class="sensor-title">PM 10 (Sender)</div><div class="sensor-val"><span id="val-pm10-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10-send">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-no2-send">
+                <div class="sensor-title">NO2 (Sender)</div>
+                <div class="sensor-val"><span id="val-no2-send">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-no2-send" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-no2-send">MEMUAT...</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-co-send">
+                <div class="sensor-title">CO (Sender)</div>
+                <div class="sensor-val"><span id="val-co-send">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-co-send" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-co-send">MEMUAT...</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-pm25-send">
+                <div class="sensor-title">PM 2.5 (Sender)</div>
+                <div class="sensor-val"><span id="val-pm25-send">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-pm25-send" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-pm25-send">MEMUAT...</div>
+            </div>
+            <div class="glass-card sensor-card" id="card-pm10-send">
+                <div class="sensor-title">PM 10 (Sender)</div>
+                <div class="sensor-val"><span id="val-pm10-send">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-pm10-send" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-pm10-send">MEMUAT...</div>
+            </div>
         </div>
 
-        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:30px;">
+        <div class="section-title"><i class="fa-solid fa-chart-line"></i> Visualisasi Grafik Real-time</div>
+        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
             <div class="glass-card">
-                <div class="section-title">Live: Gas Beracun (Receiver)</div>
-                <div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="gasChart"></canvas></div>
+                <div class="sensor-title" style="padding: 10px;">Live: Gas Beracun (Receiver)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div>
             </div>
             <div class="glass-card">
-                <div class="section-title">Live: Partikel Debu (Receiver)</div>
-                <div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="particleChart"></canvas></div>
+                <div class="sensor-title" style="padding: 10px;">Live: Partikel Debu (Receiver)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div>
             </div>
             <div class="glass-card">
-                <div class="section-title">Live: Gas Beracun (Sender)</div>
-                <div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="gasChartOut"></canvas></div>
+                <div class="sensor-title" style="padding: 10px;">Live: Gas Beracun (Sender)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="gasChartOut"></canvas></div>
             </div>
             <div class="glass-card">
-                <div class="section-title">Live: Partikel Debu (Sender)</div>
-                <div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="particleChartOut"></canvas></div>
+                <div class="sensor-title" style="padding: 10px;">Live: Partikel Debu (Sender)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="particleChartOut"></canvas></div>
             </div>
         </div>
     </div>
+
     <script src="assets/js/app.js"></script>
 </body>
 </html>
