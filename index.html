@@ -5,37 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nano Banana V2 - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            /* TEMA PUTIH BERSIH */
-            --bg: #f0f4f8; 
-            --card: #ffffff; 
-            --txt: #1e293b;
-            --txt-muted: #64748b;
-            --shadow-light: rgba(255, 255, 255, 1);
-            --shadow-dark: rgba(148, 163, 184, 0.2);
+            --bg: #f0f4f8; --card: #ffffff; --txt: #1e293b; --txt-muted: #64748b;
+            --shadow-light: rgba(255, 255, 255, 1); --shadow-dark: rgba(148, 163, 184, 0.2);
         }
         body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; }
         
-        /* Navbar */
         .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: var(--card); border-radius: 15px; box-shadow: 5px 5px 15px var(--shadow-dark), -5px -5px 15px var(--shadow-light); margin-bottom: 30px; align-items: center;}
         .nav-brand { color: #2563eb; font-size: 24px; font-weight: bold; }
         .nav-links a { color: var(--txt-muted); text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; margin-left: 10px; transition: 0.3s;}
         .nav-links a:hover { background: #f1f5f9; }
         .nav-links a.active { color: #ffffff; background: #2563eb; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3); }
         
-        /* Area Judul Section */
         .section-header { margin-top: 40px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;}
         .section-header h3 { margin: 0; color: #334155; }
         .badge { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
 
-        /* Weather Panel */
         .weather-panel { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; }
         .w-card { background: var(--card); padding: 15px 40px; border-radius: 20px; text-align: center; box-shadow: 5px 5px 15px var(--shadow-dark), -5px -5px 15px var(--shadow-light); }
         .w-val { font-size: 28px; font-weight: bold; color: #2563eb; margin: 10px 0; }
         .w-label { font-size: 12px; color: var(--txt-muted); text-transform: uppercase; font-weight: bold; }
 
-        /* Grid Sensor */
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; }
         .card { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; box-shadow: 5px 5px 15px var(--shadow-dark), -5px -5px 15px var(--shadow-light); border-top: 5px solid #cbd5e1; transition: all 0.3s; }
         .c-title { color: var(--txt-muted); font-size: 13px; font-weight: bold; margin-bottom: 15px; }
@@ -43,6 +35,9 @@
         .c-unit { font-size: 14px; color: var(--txt-muted); }
         .c-emoji { font-size: 35px; display: block; margin: 10px 0; }
         .c-status { font-weight: bold; letter-spacing: 1px; font-size: 14px; }
+
+        /* Container Grafik */
+        .chart-container { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 5px 5px 15px var(--shadow-dark); margin-top: 50px; margin-bottom: 40px;}
     </style>
 </head>
 <body>
@@ -56,15 +51,13 @@
     </nav>
 
     <div class="section-header">
-        <h3><i class="fas fa-home"></i> Node Receiver (Indoor)</h3>
+        <h3><i class="fas fa-home"></i> Node Receiver</h3>
         <span class="badge">TERHUBUNG (LIVE)</span>
     </div>
-
     <div class="weather-panel">
-        <div class="w-card"><div class="w-label"><i class="fas fa-thermometer-half"></i> Suhu Indoor</div><div class="w-val" id="val-suhu-in">-- °C</div></div>
-        <div class="w-card"><div class="w-label"><i class="fas fa-tint"></i> Kelembaban Indoor</div><div class="w-val" id="val-hum-in">-- %</div></div>
+        <div class="w-card"><div class="w-label"><i class="fas fa-thermometer-half"></i> Suhu Receiver</div><div class="w-val" id="val-suhu-in">-- °C</div></div>
+        <div class="w-card"><div class="w-label"><i class="fas fa-tint"></i> Kelembaban Receiver</div><div class="w-val" id="val-hum-in">-- %</div></div>
     </div>
-
     <div class="grid">
         <div class="card" id="card-no2-in"><div class="c-title">NO2 (Receiver)</div><div class="c-val"><span id="val-no2-in">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-no2-in">⏳</span><div class="c-status" id="stat-no2-in">LOADING</div></div>
         <div class="card" id="card-co-in"><div class="c-title">CO (Receiver)</div><div class="c-val"><span id="val-co-in">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-co-in">⏳</span><div class="c-status" id="stat-co-in">LOADING</div></div>
@@ -73,19 +66,22 @@
     </div>
 
     <div class="section-header">
-        <h3><i class="fas fa-tree"></i> Node Sender (Outdoor)</h3>
+        <h3><i class="fas fa-tree"></i> Node Sender</h3>
     </div>
-
     <div class="weather-panel">
-        <div class="w-card"><div class="w-label"><i class="fas fa-thermometer-half"></i> Suhu Outdoor</div><div class="w-val" id="val-suhu-out">-- °C</div></div>
-        <div class="w-card"><div class="w-label"><i class="fas fa-tint"></i> Kelembaban Outdoor</div><div class="w-val" id="val-hum-out">-- %</div></div>
+        <div class="w-card"><div class="w-label"><i class="fas fa-thermometer-half"></i> Suhu Sender</div><div class="w-val" id="val-suhu-out">-- °C</div></div>
+        <div class="w-card"><div class="w-label"><i class="fas fa-tint"></i> Kelembaban Sender</div><div class="w-val" id="val-hum-out">-- %</div></div>
     </div>
-
-    <div class="grid" style="margin-bottom: 50px;">
+    <div class="grid">
         <div class="card" id="card-no2-out"><div class="c-title">NO2 (Sender)</div><div class="c-val"><span id="val-no2-out">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-no2-out">⏳</span><div class="c-status" id="stat-no2-out">LOADING</div></div>
         <div class="card" id="card-co-out"><div class="c-title">CO (Sender)</div><div class="c-val"><span id="val-co-out">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-co-out">⏳</span><div class="c-status" id="stat-co-out">LOADING</div></div>
         <div class="card" id="card-pm25-out"><div class="c-title">PM 2.5 (Sender)</div><div class="c-val"><span id="val-pm25-out">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-pm25-out">⏳</span><div class="c-status" id="stat-pm25-out">LOADING</div></div>
         <div class="card" id="card-pm10-out"><div class="c-title">PM 10 (Sender)</div><div class="c-val"><span id="val-pm10-out">0</span> <span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-pm10-out">⏳</span><div class="c-status" id="stat-pm10-out">LOADING</div></div>
+    </div>
+
+    <div class="chart-container">
+        <h3 style="color: var(--txt);"><i class="fas fa-chart-line"></i> Grafik Kualitas Udara Real-time (Receiver)</h3>
+        <canvas id="airChart" height="80"></canvas>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
