@@ -10,10 +10,13 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* PAKSAAN TEMA PUTIH (MENGABAIKAN STYLE.CSS BAWAAN) */
-        :root { --bg: #ffffff; --card: #f8fafc; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
-        body, .page-wrap { background-color: var(--bg) !important; background: var(--bg) !important; color: var(--text) !important; }
-        h1, h2, h3, p, div { color: var(--text); }
+        /* PERBAIKAN TEMA PUTIH & TEKS GELAP */
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
+        body, .page-wrap { background: var(--bg) !important; color: var(--text) !important; }
+        
+        /* Memaksa semua judul dan teks menjadi gelap */
+        .page-header h1, .page-header p, h1, h2, h3, p, span, div { color: var(--text); }
+        .page-header p { color: var(--text-muted) !important; font-weight: 500; }
         
         .topbar { background: var(--card) !important; border-bottom: 1px solid var(--border); }
         .topbar-brand, .topbar-menu a { color: var(--text) !important; }
@@ -51,7 +54,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h1><i class="fa-solid fa-house"></i> Pemantauan Real-time</h1>
-                    <p style="color: var(--text-muted) !important;">Dashboard Kualitas Udara (Node Receiver vs Node Sender)</p>
+                    <p>Dashboard Kualitas Udara (Node Receiver vs Node Sender)</p>
                 </div>
                 <div id="conn-status" class="status-badge offline" style="background:#f1f5f9; color:#475569; padding:8px 15px; border-radius:20px; border:1px solid #cbd5e1;"><i class="fa-solid fa-cloud-bolt"></i> <span id="status-text">MENUNGGU DATA...</span></div>
             </div>
