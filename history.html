@@ -2,88 +2,72 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Quality - History</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <title>Nano Banana V2 - History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; color: #e2e8f0; font-size: 13px; }
-        .data-table th, .data-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .data-table th { background: rgba(0,0,0,0.3); color: var(--accent-yellow); font-weight: bold; }
-        .date-input { padding: 10px 15px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #3b82f6; outline: none; cursor: pointer; color-scheme: dark; font-family: inherit; width: 100%;}
-        .form-group { text-align: left; margin-bottom: 15px; flex: 1; min-width: 200px;}
-        .form-label { display: block; color: var(--accent-yellow); font-weight: bold; margin-bottom: 8px; font-size: 14px;}
+        :root { --bg: #1a1e29; --card: #232936; --txt: #e0e6ed; --shadow-light: rgba(255,255,255,0.05); --shadow-dark: rgba(0,0,0,0.5); }
+        body { background: var(--bg); color: var(--txt); font-family: sans-serif; padding: 20px; margin: 0; }
+        .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: var(--card); border-radius: 15px; box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light); margin-bottom: 30px; }
+        .nav-links a { color: var(--txt); text-decoration: none; padding: 10px 20px; border-radius: 10px; box-shadow: 5px 5px 10px var(--shadow-dark), -2px -2px 5px var(--shadow-light); margin-left: 10px; }
+        .nav-links a.active { color: #3b82f6; box-shadow: inset 3px 3px 7px var(--shadow-dark); }
+        
+        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 15px; overflow: hidden; box-shadow: 10px 10px 20px var(--shadow-dark); }
+        th, td { padding: 15px; text-align: center; border-bottom: 1px solid #333; }
+        th { background: #1e293b; color: #f59e0b; }
+        tr:hover { background: #334155; }
+        .btn-export { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
-    <div class="topbar">
-        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> AIR QUALITY</div>
-        <div class="topbar-menu">
+    <nav class="navbar">
+        <div style="color:#f59e0b; font-size:24px; font-weight:bold;"><i class="fas fa-leaf"></i> NANO BANANA V2</div>
+        <div class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="speedometer.html">Speedometer</a>
-            <a href="grafik.html">Grafik</a>
             <a href="history.html" class="active">History</a>
         </div>
-    </div>
+    </nav>
 
-    <div class="page-wrap">
-        <div class="page-header">
-            <div>
-                <h1><i class="fa-solid fa-file-export"></i> Export Data Penelitian</h1>
-                <p>Unduh data KTI (Receiver & Sender) berdasarkan filter waktu dan metode pengolahan.</p>
-            </div>
-        </div>
-
-        <div class="glass-card" style="margin-bottom: 20px; border: 1px solid var(--accent-yellow);">
-            <div class="section-title" style="color: var(--accent-yellow); margin-bottom: 20px; font-size: 18px; text-align: center;">
-                <i class="fa-solid fa-file-excel"></i> Parameter Unduhan Excel (.xlsx)
-            </div>
-            
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px;">
-                
-                <div class="form-group">
-                    <label class="form-label"><i class="fa-solid fa-calendar-plus"></i> Waktu Mulai:</label>
-                    <input type="datetime-local" id="hist-start" class="date-input">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label"><i class="fa-solid fa-calendar-check"></i> Waktu Selesai:</label>
-                    <input type="datetime-local" id="hist-end" class="date-input">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label"><i class="fa-solid fa-filter"></i> Metode Olah Data:</label>
-                    <select id="hist-format" class="date-input">
-                        <option value="raw">1. Data Mentah Asli (Raw)</option>
-                        <option value="hourly">2. Rata-rata per Jam (Hourly Avg)</option>
-                        <option value="daily">3. Rata-rata Harian (Daily Avg)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 25px;">
-                <button onclick="processDownload()" style="background: #10b981; color: white; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
-                    <i class="fa-solid fa-download"></i> Ekstrak & Unduh Excel
-                </button>
-            </div>
-        </div>
-
-        <div class="glass-card" style="overflow-x: auto;">
-            <div class="section-title"><i class="fa-solid fa-table"></i> Pratinjau 10 Data Terakhir</div>
-            <table class="data-table">
-                <thead>
-                    <tr><th>Tanggal & Jam</th><th>MQ-135 (Recv)</th><th>MQ-7 (Recv)</th><th>PM 2.5 (Recv)</th><th>PM 10 (Recv)</th><th>MQ-135 (Send)</th><th>MQ-7 (Send)</th><th>PM 2.5 (Send)</th><th>PM 10 (Send)</th></tr>
-                </thead>
-                <tbody id="history-table-body">
-                    <tr><td colspan="9">Memuat data dari server...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <h2><i class="fas fa-history"></i> Log Data Sensor (Indoor)</h2>
+    <button class="btn-export" onclick="exportTableToCSV('Data_NanoBanana.csv')"><i class="fas fa-download"></i> Export Excel/CSV</button>
     
-    <script src="assets/js/app.js"></script>
+    <table id="historyTable">
+        <thead>
+            <tr>
+                <th>Waktu</th>
+                <th>Suhu (°C)</th>
+                <th>Kelembaban (%)</th>
+                <th>NO2 (µg/m³)</th>
+                <th>CO (µg/m³)</th>
+                <th>PM 2.5 (µg/m³)</th>
+                <th>PM 10 (µg/m³)</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            </tbody>
+    </table>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Fungsi Export sederhana
+        function exportTableToCSV(filename) {
+            var csv = [];
+            var rows = document.querySelectorAll("table tr");
+            for (var i = 0; i < rows.length; i++) {
+                var row = [], cols = rows[i].querySelectorAll("td, th");
+                for (var j = 0; j < cols.length; j++) row.push(cols[j].innerText);
+                csv.push(row.join(","));
+            }
+            var csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+            var downloadLink = document.createElement("a");
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+        }
+    </script>
 </body>
 </html>
