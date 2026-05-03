@@ -3,68 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Quality - Dashboard</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Nano Banana V2 - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #1a1e29;
+            --card-bg: #232936;
+            --text-color: #e0e6ed;
+            --accent-color: #f59e0b;
+            --shadow-light: rgba(255, 255, 255, 0.05);
+            --shadow-dark: rgba(0, 0, 0, 0.5);
+            
+            /* Warna ISPU */
+            --ispu-baik: #22c55e;
+            --ispu-sedang: #f59e0b;
+            --ispu-tidak-sehat: #ef4444;
+            --ispu-sangat-tidak-sehat: #9333ea;
+            --ispu-berbahaya: #000000;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Navbar Neomorphic */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light);
+            margin-bottom: 30px;
+        }
+
+        .nav-brand { color: var(--accent-color); font-weight: bold; font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn {
+            background: var(--card-bg);
+            border: none;
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 5px 5px 10px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .nav-btn.active { color: #3b82f6; box-shadow: inset 3px 3px 7px var(--shadow-dark); }
+
+        /* Panel Cuaca (Suhu & Kelembaban) di Atas Tengah */
+        .weather-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .weather-card {
+            background: var(--card-bg);
+            padding: 15px 40px;
+            border-radius: 20px;
+            box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light);
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .weather-val { font-size: 28px; font-weight: bold; margin: 10px 0; color: #60a5fa; }
+        .weather-label { font-size: 12px; text-transform: uppercase; color: #94a3b8; }
+
+        /* Grid Utama Polutan */
+        .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .status-live { color: var(--ispu-baik); font-size: 14px; display: flex; align-items: center; gap: 5px; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 15px 15px 30px var(--shadow-dark), -5px -5px 15px var(--shadow-light);
+            text-align: center;
+            border-top: 3px solid transparent; /* Nanti berubah sesuai status ISPU */
+            transition: border-color 0.5s;
+        }
+
+        .card-title { font-size: 13px; color: #94a3b8; margin-bottom: 15px; font-weight: 600; }
+        .card-value { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .card-unit { font-size: 14px; color: #64748b; font-weight: normal; }
+        .emoji { font-size: 40px; margin: 15px 0; display: block; }
+        .ispu-status { font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
 </head>
 <body>
-    <div class="topbar">
-        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> AIR QUALITY</div>
-        <div class="topbar-menu">
-            <a href="index.html" class="active">Dashboard</a>
-            <a href="speedometer.html">Speedometer</a>
-            <a href="grafik.html">Grafik</a>
-            <a href="history.html">History</a>
-            <button id="btn-login" onclick="toggleLogin()" style="background: rgba(250, 204, 21, 0.2); border: 1px solid var(--accent-yellow); color: var(--accent-yellow); padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-left: 15px; font-weight: bold;">
-                <i class="fa-solid fa-lock"></i> Login Admin
-            </button>
+
+    <nav class="navbar">
+        <div class="nav-brand"><i class="fas fa-leaf"></i> AIR QUALITY</div>
+        <div class="nav-links">
+            <a href="index.html" class="nav-btn active">Dashboard</a>
+            <a href="speedometer.html" class="nav-btn">Speedometer</a>
+            <a href="grafik.html" class="nav-btn">Grafik</a>
+            <a href="history.html" class="nav-btn">History</a>
+            <a href="#" class="nav-btn" style="background: #3b82f622;"><i class="fas fa-lock"></i> Login Admin</a>
+        </div>
+    </nav>
+
+    <div class="weather-container">
+        <div class="weather-card">
+            <div class="weather-label"><i class="fas fa-thermometer-half"></i> Suhu</div>
+            <div class="weather-val" id="val-temp">--.- °C</div>
+        </div>
+        <div class="weather-card">
+            <div class="weather-label"><i class="fas fa-tint"></i> Kelembaban</div>
+            <div class="weather-val" id="val-hum">-- %</div>
         </div>
     </div>
 
-    <div class="page-wrap">
-        <div class="page-header">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h1><i class="fa-solid fa-house"></i> Pemantauan Real-time</h1>
-                    <p>Dashboard Kualitas Udara (Node Receiver vs Node Sender)</p>
-                </div>
-                <div id="conn-status" class="status-badge offline"><i class="fa-solid fa-cloud-bolt"></i> <span id="status-text">MENUNGGU DATA...</span></div>
-            </div>
-        </div>
+    <div class="section-title">
+        <h2><i class="fas fa-home"></i> Pemantauan Real-time (Indoor)</h2>
+        <div class="status-live"><i class="fas fa-satellite-dish"></i> TERHUBUNG (LIVE)</div>
+    </div>
 
-        <div id="admin-panel" class="glass-card" style="display: none; border: 1px solid var(--accent-yellow); margin-bottom: 20px;">
-            <div class="section-title" style="color: var(--accent-yellow);"><i class="fa-solid fa-gamepad"></i> Panel Kontrol Remote (Admin)</div>
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                <button onclick="setAlat('START')" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-play"></i> START SISTEM</button>
-                <button onclick="setAlat('STOP')" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-stop"></i> STOP SISTEM</button>
-                <span id="status-sistem" style="font-weight: bold; color: white; background: rgba(0,0,0,0.2); padding: 8px 15px; border-radius: 8px;"><i class="fa-solid fa-satellite-dish"></i> Status: Menunggu...</span>
-            </div>
+    <div class="dashboard-grid">
+        <div class="card" id="card-no2-in">
+            <div class="card-title">NO2 (MiCS-6814)</div>
+            <div class="card-value"><span id="val-no2-in">--.--</span> <span class="card-unit">µg/m³</span></div>
+            <span class="emoji" id="emo-no2-in">😐</span>
+            <div class="ispu-status" id="stat-no2-in">WAITING...</div>
         </div>
-
-        <div class="card-grid">
-            <div class="glass-card sensor-card" id="card-mq135-recv"><div class="sensor-title">MQ-135 (Receiver)</div><div class="sensor-val"><span id="val-mq135-recv">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135-recv">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-mq7-recv"><div class="sensor-title">MQ-7 (Receiver)</div><div class="sensor-val"><span id="val-mq7-recv">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7-recv">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm25-recv"><div class="sensor-title">PM 2.5 (Receiver)</div><div class="sensor-val"><span id="val-pm25-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25-recv">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm10-recv"><div class="sensor-title">PM 10 (Receiver)</div><div class="sensor-val"><span id="val-pm10-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10-recv">MEMUAT...</div></div>
-            
-            <div class="glass-card sensor-card" id="card-mq135-send"><div class="sensor-title">MQ-135 (Sender)</div><div class="sensor-val"><span id="val-mq135-send">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135-send">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-mq7-send"><div class="sensor-title">MQ-7 (Sender)</div><div class="sensor-val"><span id="val-mq7-send">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7-send">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm25-send"><div class="sensor-title">PM 2.5 (Sender)</div><div class="sensor-val"><span id="val-pm25-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25-send">MEMUAT...</div></div>
-            <div class="glass-card sensor-card" id="card-pm10-send"><div class="sensor-title">PM 10 (Sender)</div><div class="sensor-val"><span id="val-pm10-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10-send">MEMUAT...</div></div>
+        <div class="card" id="card-co-in">
+            <div class="card-title">CO (MiCS-6814)</div>
+            <div class="card-value"><span id="val-co-in">--.--</span> <span class="card-unit">µg/m³</span></div>
+            <span class="emoji" id="emo-co-in">😐</span>
+            <div class="ispu-status" id="stat-co-in">WAITING...</div>
         </div>
-
-        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
-            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Receiver)</div><div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div></div>
-            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Receiver)</div><div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div></div>
+        <div class="card" id="card-pm25-in">
+            <div class="card-title">PM 2.5 (PMS5003)</div>
+            <div class="card-value"><span id="val-pm25-in">--.--</span> <span class="card-unit">µg/m³</span></div>
+            <span class="emoji" id="emo-pm25-in">😐</span>
+            <div class="ispu-status" id="stat-pm25-in">WAITING...</div>
         </div>
-        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
-            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Sender)</div><div class="chart-box" style="height: 250px;"><canvas id="gasChartOut"></canvas></div></div>
-            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Sender)</div><div class="chart-box" style="height: 250px;"><canvas id="particleChartOut"></canvas></div></div>
+        <div class="card" id="card-pm10-in">
+            <div class="card-title">PM 10 (PMS5003)</div>
+            <div class="card-value"><span id="val-pm10-in">--.--</span> <span class="card-unit">µg/m³</span></div>
+            <span class="emoji" id="emo-pm10-in">😐</span>
+            <div class="ispu-status" id="stat-pm10-in">WAITING...</div>
         </div>
     </div>
-    <script src="assets/js/app.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
