@@ -10,21 +10,25 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --accent-blue: #2563eb; }
-        body { background-color: var(--bg); color: var(--text); }
-        .topbar { background: var(--card); border-bottom: 1px solid var(--border); }
-        .topbar-brand, .topbar-menu a { color: var(--text); }
-        .topbar-menu a.active { background: var(--accent-blue); color: white; }
-        .glass-card { background: var(--card); border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* PAKSAAN TEMA PUTIH */
+        :root { --bg: #ffffff; --card: #f8fafc; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
+        body, .page-wrap { background-color: var(--bg) !important; background: var(--bg) !important; color: var(--text) !important; }
+        h1, h2, h3, p, div, label { color: var(--text); }
         
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; color: #1e293b; font-size: 13px; }
-        .data-table th, .data-table td { padding: 10px; border-bottom: 1px solid #cbd5e1; text-align: center; }
-        .data-table th { background: #e2e8f0; color: #1e293b; font-weight: bold; }
-        .data-table tr:hover { background: #f1f5f9; }
+        .topbar { background: var(--card) !important; border-bottom: 1px solid var(--border); }
+        .topbar-brand, .topbar-menu a { color: var(--text) !important; }
+        .topbar-menu a.active { background: var(--accent-blue) !important; color: white !important; }
         
-        .date-input { padding: 10px 15px; border-radius: 6px; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; outline: none; cursor: pointer; font-family: inherit; width: 100%;}
+        .glass-card { background: var(--card) !important; border: 1px solid var(--border) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; color: var(--text) !important; font-size: 13px; }
+        .data-table th, .data-table td { padding: 10px; border-bottom: 1px solid var(--border); text-align: center; }
+        .data-table th { background: #e2e8f0 !important; color: var(--text) !important; font-weight: bold; }
+        .data-table tr:hover { background: #f1f5f9 !important; }
+        
+        .date-input { padding: 10px 15px; border-radius: 6px; background: #ffffff !important; color: var(--text) !important; border: 1px solid var(--border) !important; outline: none; cursor: pointer; font-family: inherit; width: 100%;}
         .form-group { text-align: left; margin-bottom: 15px; flex: 1; min-width: 180px;}
-        .form-label { display: block; color: var(--accent-blue); font-weight: bold; margin-bottom: 8px; font-size: 14px;}
+        .form-label { display: block; color: var(--accent-blue) !important; font-weight: bold; margin-bottom: 8px; font-size: 14px;}
+        .section-title { font-weight:bold; }
     </style>
 </head>
 <body>
@@ -42,16 +46,16 @@
         <div class="page-header">
             <div>
                 <h1><i class="fa-solid fa-file-export"></i> Filter & Export Data Penelitian</h1>
-                <p>Tampilkan dan unduh data KTI berdasarkan parameter dan rentang waktu spesifik.</p>
+                <p style="color: var(--text-muted) !important;">Tampilkan dan unduh data KTI berdasarkan parameter dan rentang waktu spesifik.</p>
             </div>
         </div>
 
-        <div class="glass-card" style="margin-bottom: 20px; border: 1px solid #cbd5e1;">
-            <div class="section-title" style="color: var(--accent-blue); margin-bottom: 20px; font-size: 18px; text-align: center; font-weight:bold;">
+        <div class="glass-card" style="margin-bottom: 20px; border: 1px solid var(--border);">
+            <div class="section-title" style="color: var(--accent-blue) !important; margin-bottom: 20px; font-size: 18px; text-align: center;">
                 <i class="fa-solid fa-sliders"></i> Parameter Filter Data
             </div>
             
-            <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start; justify-content: space-between; background: #f8fafc; padding: 20px; border-radius: 8px; border:1px solid #cbd5e1;">
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start; justify-content: space-between; background: #ffffff; padding: 20px; border-radius: 8px; border:1px solid var(--border);">
                 
                 <div class="form-group">
                     <label class="form-label"><i class="fa-solid fa-calendar-plus"></i> Waktu Mulai:</label>
@@ -87,7 +91,7 @@
             </div>
 
             <div style="text-align: center; margin-top: 25px; padding-bottom: 10px; display: flex; justify-content: center; gap: 15px;">
-                <button onclick="processHistoryView()" style="background: #2563eb; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px;">
+                <button onclick="processHistoryView()" style="background: var(--accent-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px;">
                     <i class="fa-solid fa-eye"></i> Tampilkan di Layar
                 </button>
                 <button onclick="processDownload()" style="background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px;">
@@ -97,7 +101,7 @@
         </div>
 
         <div class="glass-card" style="overflow-x:auto;">
-            <div class="section-title" style="padding:15px; color:#1e293b; font-weight:bold; border-bottom:none;"><i class="fa-solid fa-table"></i> Tabel Riwayat Data</div>
+            <div class="section-title" style="padding:15px; color:var(--text) !important; border-bottom:none;"><i class="fa-solid fa-table"></i> Tabel Riwayat Data</div>
             <table class="data-table" id="dataTable">
                 <thead id="table-head">
                     </thead>
