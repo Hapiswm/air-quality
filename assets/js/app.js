@@ -1,16 +1,10 @@
 // ==========================================
-// 1. KONFIGURASI FIREBASE
+// 1. KONFIGURASI FIREBASE & ISPU
 // ==========================================
-const firebaseConfig = {
-    // URL DATABASE KAMU
-    databaseURL: "https://air-quality-2f87d-default-rtdb.asia-southeast1.firebasedatabase.app"
-};
+const firebaseConfig = { databaseURL: "https://air-quality-2f87d-default-rtdb.asia-southeast1.firebasedatabase.app" };
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
-// ==========================================
-// 2. LOGIKA ISPU KLHK (Massa & Interpolasi)
-// ==========================================
 function convertToMass(ppm, gasType) {
     if (gasType === 'CO') return ppm * 1145.6; 
     if (gasType === 'NO2') return ppm * 1881.8;
@@ -30,143 +24,180 @@ function calculateISPU(value, type) {
     for (let i = 0; i < limits.length; i++) {
         let Xb = limits[i][0], Xa = limits[i][1];
         let Ib = limits[i][2], Ia = limits[i][3];
-        if (value >= Xb && value <= Xa) {
-            let I = ((Ia - Ib) / (Xa - Xb)) * (value - Xb) + Ib;
-            return Math.round(I);
-        }
+        if (value >= Xb && value <= Xa) return Math.round(((Ia - Ib) / (Xa - Xb)) * (value - Xb) + Ib);
     }
     return 500; 
 }
 
-function getISPUCategory(ispuScore) {
-    if (ispuScore <= 50) return { text: "BAIK", color: "#22c55e", emoji: "😃" };
-    if (ispuScore <= 100) return { text: "SEDANG", color: "#3b82f6", emoji: "😐" };
-    if (ispuScore <= 200) return { text: "TIDAK SEHAT", color: "#f59e0b", emoji: "😷" };
-    if (ispuScore <= 300) return { text: "SANGAT TIDAK SEHAT", color: "#ef4444", emoji: "🤢" };
+function getISPUCategory(score) {
+    if (score <= 50) return { text: "BAIK", color: "#22c55e", emoji: "😃" };
+    if (score <= 100) return { text: "SEDANG", color: "#3b82f6", emoji: "😐" };
+    if (score <= 200) return { text: "TIDAK SEHAT", color: "#f59e0b", emoji: "😷" };
+    if (score <= 300) return { text: "SANGAT TIDAK SEHAT", color: "#ef4444", emoji: "🤢" };
     return { text: "BERBAHAYA", color: "#000000", emoji: "☠️", isDanger: true }; 
 }
 
 // ==========================================
-// 3. INISIALISASI GRAFIK (CHART.JS)
+// 2. DASHBOARD LIVE UPDATE (index.html & speedometer.html)
 // ==========================================
-let myChart;
-if(document.getElementById('airChart')) {
-    const ctx = document.getElementById('airChart').getContext('2d');
-    myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [], 
-            datasets: [
-                { label: 'CO Receiver (µg/m³)', borderColor: '#ef4444', backgroundColor: 'transparent', data: [], tension: 0.3 },
-                { label: 'NO2 Receiver (µg/m³)', borderColor: '#f59e0b', backgroundColor: 'transparent', data: [], tension: 0.3 },
-                { label: 'PM 2.5 Receiver', borderColor: '#3b82f6', backgroundColor: 'transparent', data: [], tension: 0.3 }
-            ]
-        },
-        options: { responsive: true, scales: { x: { display: true }, y: { beginAtZero: true } } }
-    });
-}
-
-// ==========================================
-// 4. FUNGSI PROSES DATA (UI Dashboard)
-// ==========================================
-function updateDashboardCard(id, suffix, value, ispuScore, category) {
-    let elID = `${id}-${suffix}`;
-    if(document.getElementById(`val-${elID}`)) {
-        document.getElementById(`val-${elID}`).innerText = value.toFixed(1);
-        document.getElementById(`emo-${elID}`).innerText = category.emoji;
-        document.getElementById(`stat-${elID}`).innerText = category.text;
-        document.getElementById(`stat-${elID}`).style.color = category.color;
-        document.getElementById(`card-${elID}`).style.borderTopColor = category.color;
-    }
-    // Update Speedometer
-    if(document.getElementById(`spd-${elID}`)) {
-        document.getElementById(`spd-${elID}`).innerText = value.toFixed(1);
-        let ispuEl = document.getElementById(`ispu-spd-${elID}`);
-        if(ispuEl) {
-            ispuEl.innerText = `ISPU: ${ispuScore}`;
-            ispuEl.style.color = category.color;
-        }
+function updateDashboardUI(id, suffix, val, score, cat) {
+    let el = `${id}-${suffix}`;
+    if(document.getElementById(`val-${el}`)) {
+        document.getElementById(`val-${el}`).innerText = val.toFixed(1);
+        document.getElementById(`emo-${el}`).innerText = cat.emoji;
+        document.getElementById(`stat-${el}`).innerText = cat.text;
+        document.getElementById(`stat-${el}`).style.color = cat.color;
+        document.getElementById(`card-${el}`).style.borderTopColor = cat.color;
     }
 }
 
-function processNodeData(data, locationType) {
-    let uiSuffix = locationType === 'receiver' ? 'in' : 'out';
-    let fbSuffix = locationType === 'receiver' ? '_indoor' : '_outdoor'; 
-
-    let suhu = data['suhu' + fbSuffix] || 0;
-    let hum = data['hum' + fbSuffix] || 0;
+db.ref('/sensorData').on('value', (snap) => {
+    let d = snap.val();
+    if (!d) return;
     
-    if(document.getElementById(`val-suhu-${uiSuffix}`)) document.getElementById(`val-suhu-${uiSuffix}`).innerText = suhu.toFixed(1) + " °C";
-    if(document.getElementById(`val-hum-${uiSuffix}`)) document.getElementById(`val-hum-${uiSuffix}`).innerText = hum.toFixed(1) + " %";
-    if(document.getElementById(`spd-suhu-${uiSuffix}`)) document.getElementById(`spd-suhu-${uiSuffix}`).innerText = suhu.toFixed(1);
-
-    let no2_m = convertToMass(data['no2' + fbSuffix] || 0, 'NO2');
-    let co_m = convertToMass(data['co' + fbSuffix] || 0, 'CO');
-    let pm25_m = data['pm25' + fbSuffix] || 0;
-    let pm10_m = data['pm10' + fbSuffix] || 0;
-
-    let i_no2 = calculateISPU(no2_m, 'NO2');
-    let i_co = calculateISPU(co_m, 'CO');
-    let i_pm25 = calculateISPU(pm25_m, 'PM25');
-    let i_pm10 = calculateISPU(pm10_m, 'PM10');
-
-    updateDashboardCard('no2', uiSuffix, no2_m, i_no2, getISPUCategory(i_no2));
-    updateDashboardCard('co', uiSuffix, co_m, i_co, getISPUCategory(i_co));
-    updateDashboardCard('pm25', uiSuffix, pm25_m, i_pm25, getISPUCategory(i_pm25));
-    updateDashboardCard('pm10', uiSuffix, pm10_m, i_pm10, getISPUCategory(i_pm10));
-}
-
-// MENDENGARKAN DATA REALTIME
-db.ref('/sensorData').on('value', (snapshot) => {
-    let data = snapshot.val();
-    if (data) {
-        processNodeData(data, 'receiver');
-        processNodeData(data, 'sender');
-    }
-});
-
-// ==========================================
-// 5. DATA LOG UNTUK GRAFIK & HISTORY TABLE
-// ==========================================
-db.ref('/logs').limitToLast(15).on('value', (snapshot) => {
-    let tbody = document.getElementById('tableBody');
-    if(tbody) tbody.innerHTML = '';
-    
-    let labels = [], coData = [], no2Data = [], pmData = [];
-
-    snapshot.forEach((child) => {
-        let d = child.val();
-        let timeStr = new Date(d.timestamp || Date.now()).toLocaleTimeString('id-ID');
+    // Suhu & Hum
+    ['indoor', 'outdoor'].forEach(loc => {
+        let suf = loc === 'indoor' ? 'in' : 'out';
+        if(document.getElementById(`val-suhu-${suf}`)) document.getElementById(`val-suhu-${suf}`).innerText = (d[`suhu_${loc}`]||0).toFixed(1) + " °C";
+        if(document.getElementById(`val-hum-${suf}`)) document.getElementById(`val-hum-${suf}`).innerText = (d[`hum_${loc}`]||0).toFixed(1) + " %";
         
-        // Konversi Data
-        let no2_in = convertToMass(d.no2_indoor || 0, 'NO2').toFixed(1);
-        let co_in = convertToMass(d.co_indoor || 0, 'CO').toFixed(1);
-        let no2_out = convertToMass(d.no2_outdoor || 0, 'NO2').toFixed(1);
-        let co_out = convertToMass(d.co_outdoor || 0, 'CO').toFixed(1);
+        let no2 = convertToMass(d[`no2_${loc}`]||0, 'NO2');
+        let co = convertToMass(d[`co_${loc}`]||0, 'CO');
+        let pm25 = d[`pm25_${loc}`]||0;
+        let pm10 = d[`pm10_${loc}`]||0;
 
-        // Isi Tabel History
-        if(tbody) {
-            tbody.innerHTML += `<tr>
-                <td>${timeStr}</td>
-                <td>${(d.suhu_indoor||0).toFixed(1)}</td><td>${(d.hum_indoor||0).toFixed(1)}</td>
-                <td>${no2_in}</td><td>${co_in}</td><td>${d.pm25_indoor||0}</td><td>${d.pm10_indoor||0}</td>
-                <td>${(d.suhu_outdoor||0).toFixed(1)}</td><td>${(d.hum_outdoor||0).toFixed(1)}</td>
-                <td>${no2_out}</td><td>${co_out}</td><td>${d.pm25_outdoor||0}</td><td>${d.pm10_outdoor||0}</td>
-            </tr>`;
-        }
+        updateDashboardUI('no2', suf, no2, calculateISPU(no2, 'NO2'), getISPUCategory(calculateISPU(no2, 'NO2')));
+        updateDashboardUI('co', suf, co, calculateISPU(co, 'CO'), getISPUCategory(calculateISPU(co, 'CO')));
+        updateDashboardUI('pm25', suf, pm25, calculateISPU(pm25, 'PM25'), getISPUCategory(calculateISPU(pm25, 'PM25')));
+        updateDashboardUI('pm10', suf, pm10, calculateISPU(pm10, 'PM10'), getISPUCategory(calculateISPU(pm10, 'PM10')));
+    });
+});
 
-        labels.push(timeStr);
-        coData.push(co_in);
-        no2Data.push(no2_in);
-        pmData.push(d.pm25_indoor || 0);
+// Live Chart di index.html
+let liveChart;
+if(document.getElementById('liveChart')) {
+    let ctx = document.getElementById('liveChart').getContext('2d');
+    liveChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [
+        { label: 'CO Receiver', borderColor: '#ef4444', data: [], tension: 0.3 },
+        { label: 'NO2 Receiver', borderColor: '#f59e0b', data: [], tension: 0.3 }
+    ]}, options: { responsive: true, animation: false }});
+    
+    db.ref('/logs').limitToLast(15).on('value', (snap) => {
+        let lbls = [], dCO = [], dNO2 = [];
+        snap.forEach(c => {
+            let v = c.val();
+            lbls.push(new Date(v.timestamp).toLocaleTimeString('id-ID'));
+            dCO.push(convertToMass(v.co_indoor||0, 'CO'));
+            dNO2.push(convertToMass(v.no2_indoor||0, 'NO2'));
+        });
+        liveChart.data.labels = lbls; liveChart.data.datasets[0].data = dCO; liveChart.data.datasets[1].data = dNO2; liveChart.update();
+    });
+}
+
+// ==========================================
+// 3. FITUR FILTER, GRAFIK & EXCEL (grafik.html & history.html)
+// ==========================================
+let analysisChart;
+
+// Fungsi Agregasi Rata-rata Array
+function averageData(dataArray, interval) {
+    let grouped = {};
+    dataArray.forEach(item => {
+        let d = new Date(item.timestamp);
+        let key = '';
+        if(interval === 'perjam') key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:00`;
+        else if(interval === '24jam') key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} (Rata-rata Harian)`;
+        else key = d.toLocaleString('id-ID'); // raw
+        
+        if(!grouped[key]) grouped[key] = { count: 0, s_in:0, h_in:0, n_in:0, c_in:0, p2_in:0, p10_in:0, s_out:0, h_out:0, n_out:0, c_out:0, p2_out:0, p10_out:0 };
+        
+        grouped[key].s_in += item.suhu_indoor||0; grouped[key].h_in += item.hum_indoor||0;
+        grouped[key].n_in += convertToMass(item.no2_indoor||0, 'NO2'); grouped[key].c_in += convertToMass(item.co_indoor||0, 'CO');
+        grouped[key].p2_in += item.pm25_indoor||0; grouped[key].p10_in += item.pm10_indoor||0;
+        
+        grouped[key].s_out += item.suhu_outdoor||0; grouped[key].h_out += item.hum_outdoor||0;
+        grouped[key].n_out += convertToMass(item.no2_outdoor||0, 'NO2'); grouped[key].c_out += convertToMass(item.co_outdoor||0, 'CO');
+        grouped[key].p2_out += item.pm25_outdoor||0; grouped[key].p10_out += item.pm10_outdoor||0;
+        
+        grouped[key].count++;
     });
 
-    // Perbarui Grafik
-    if(myChart) {
-        myChart.data.labels = labels;
-        myChart.data.datasets[0].data = coData;
-        myChart.data.datasets[1].data = no2Data;
-        myChart.data.datasets[2].data = pmData;
-        myChart.update();
+    let result = [];
+    for(let k in grouped) {
+        let c = grouped[k].count;
+        result.push({ timeStr: k, 
+            s_in: (grouped[k].s_in/c).toFixed(1), h_in: (grouped[k].h_in/c).toFixed(1), n_in: (grouped[k].n_in/c).toFixed(1), c_in: (grouped[k].c_in/c).toFixed(1), p2_in: (grouped[k].p2_in/c).toFixed(1), p10_in: (grouped[k].p10_in/c).toFixed(1),
+            s_out: (grouped[k].s_out/c).toFixed(1), h_out: (grouped[k].h_out/c).toFixed(1), n_out: (grouped[k].n_out/c).toFixed(1), c_out: (grouped[k].c_out/c).toFixed(1), p2_out: (grouped[k].p2_out/c).toFixed(1), p10_out: (grouped[k].p10_out/c).toFixed(1)
+        });
     }
-});
+    return result;
+}
+
+// Fungsi Fetch Filtered Data
+function fetchFilteredData(dateStr, mode, callback) {
+    let ref = db.ref('/logs');
+    if(mode === 'realtime' && !dateStr) { ref.limitToLast(50).once('value', s => callback(s)); } 
+    else {
+        // Ambil 1 hari penuh jika ada filter tanggal
+        let start = new Date(dateStr).setHours(0,0,0,0);
+        let end = new Date(dateStr).setHours(23,59,59,999);
+        ref.orderByChild('timestamp').startAt(start).endAt(end).once('value', s => callback(s));
+    }
+}
+
+// Render Grafik Filter
+window.loadGrafikData = function() {
+    let mode = document.getElementById('grafik-mode').value;
+    let date = document.getElementById('grafik-date').value;
+    if((mode==='perjam' || mode==='24jam') && !date) { alert("Pilih tanggal dulu!"); return; }
+
+    fetchFilteredData(date, mode, (snap) => {
+        let rawData = []; snap.forEach(c => { rawData.push(c.val()); });
+        let processed = averageData(rawData, mode);
+        
+        let lbls = [], co = [], no2 = [];
+        processed.forEach(p => { lbls.push(p.timeStr); co.push(p.c_in); no2.push(p.n_in); });
+
+        if(!analysisChart) {
+            let ctx = document.getElementById('mainChart').getContext('2d');
+            analysisChart = new Chart(ctx, { type: 'line', data: { labels: lbls, datasets: [{ label: 'CO Receiver', borderColor: 'red', data: co }, { label: 'NO2 Receiver', borderColor: 'orange', data: no2 }]} });
+        } else {
+            analysisChart.data.labels = lbls; analysisChart.data.datasets[0].data = co; analysisChart.data.datasets[1].data = no2; analysisChart.update();
+        }
+    });
+}
+
+// Render Tabel History & Fungsi Export CSV
+window.loadHistoryData = function() {
+    let mode = document.getElementById('hist-mode').value;
+    let date = document.getElementById('hist-date').value;
+    if((mode==='perjam' || mode==='24jam') && !date) { alert("Pilih tanggal dulu!"); return; }
+
+    fetchFilteredData(date, mode, (snap) => {
+        let rawData = []; snap.forEach(c => { rawData.push(c.val()); });
+        let processed = averageData(rawData, mode);
+        
+        let tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
+        if(processed.length === 0) tbody.innerHTML = '<tr><td colspan="13">Data tidak ditemukan di tanggal tersebut.</td></tr>';
+        
+        processed.forEach(p => {
+            tbody.innerHTML += `<tr>
+                <td>${p.timeStr}</td>
+                <td class="th-group">${p.s_in}</td><td>${p.h_in}</td><td>${p.n_in}</td><td>${p.c_in}</td><td>${p.p2_in}</td><td>${p.p10_in}</td>
+                <td class="th-group">${p.s_out}</td><td>${p.h_out}</td><td>${p.n_out}</td><td>${p.c_out}</td><td>${p.p2_out}</td><td>${p.p10_out}</td>
+            </tr>`;
+        });
+    });
+}
+
+window.exportToCSV = function() {
+    let csv = []; let rows = document.querySelectorAll("#dataTable tr");
+    for (let i = 0; i < rows.length; i++) {
+        let row = [], cols = rows[i].querySelectorAll("td, th");
+        for (let j = 0; j < cols.length; j++) row.push(cols[j].innerText.replace(/,/g, "")); 
+        csv.push(row.join(","));
+    }
+    let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+    let dl = document.createElement("a"); dl.download = "Export_Data_KTI.csv"; dl.href = window.URL.createObjectURL(csvFile);
+    document.body.appendChild(dl); dl.click();
+}
