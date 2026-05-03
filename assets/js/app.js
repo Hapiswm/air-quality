@@ -1,5 +1,5 @@
 // =========================================================================
-// 1. KONFIGURASI FIREBASE & VARIABEL GLOBAL
+// 1. KONFIGURASI FIREBASE
 // =========================================================================
 const firebaseConfig = { databaseURL: "https://air-quality-2f87d-default-rtdb.asia-southeast1.firebasedatabase.app" };
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -27,6 +27,7 @@ const ispuLimits = {
 };
 
 function calculateISPU(value, type) {
+    if (type === 'SUHU' || type === 'HUM') return value; 
     let limits = ispuLimits[type];
     if (!limits) return 0;
     for (let i = 0; i < limits.length; i++) {
@@ -167,13 +168,13 @@ db.ref('/sensorData').on('value', (snap) => {
     let connEl = document.getElementById('conn-status'); let statText = document.getElementById('status-text');
     if(connEl && statText) { connEl.className = 'status-badge online'; statText.innerText = 'TERHUBUNG (LIVE)'; }
 
-    // Update Weather Box Dashboard
+    // Weather Box Dashboard
     if(document.getElementById('val-suhu-recv')) document.getElementById('val-suhu-recv').innerText = (d.suhu_indoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-recv')) document.getElementById('val-hum-recv').innerText = (d.hum_indoor||0).toFixed(1) + " %";
     if(document.getElementById('val-suhu-send')) document.getElementById('val-suhu-send').innerText = (d.suhu_outdoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-send')) document.getElementById('val-hum-send').innerText = (d.hum_outdoor||0).toFixed(1) + " %";
 
-    // Update Weather Box Speedometer (ID yg ditambah -spd)
+    // Weather Box Speedometer
     if(document.getElementById('val-suhu-recv-spd')) document.getElementById('val-suhu-recv-spd').innerText = (d.suhu_indoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-recv-spd')) document.getElementById('val-hum-recv-spd').innerText = (d.hum_indoor||0).toFixed(1) + " %";
     if(document.getElementById('val-suhu-send-spd')) document.getElementById('val-suhu-send-spd').innerText = (d.suhu_outdoor||0).toFixed(1) + " °C";
@@ -197,7 +198,7 @@ db.ref('/sensorData').on('value', (snap) => {
         let score = calculateISPU(s.val, s.type);
         let st = getISPUStatus(score);
 
-        // Speedo Update
+        // Speedo Update (Hanya ada 8 gas speedo sekarang)
         if(document.getElementById(`needle-${s.id}`)) document.getElementById(`needle-${s.id}`).style.transform = `rotate(${valueToAngle(score)}deg)`;
         if(document.getElementById(`val-${s.id}`)) document.getElementById(`val-${s.id}`).innerHTML = `${s.val.toFixed(1)}`;
         if(document.getElementById(`stat-${s.id}`)) { document.getElementById(`stat-${s.id}`).innerText = `ISPU: ${score} (${st.text})`; document.getElementById(`stat-${s.id}`).style.color = st.color; }
@@ -259,7 +260,7 @@ function fetchAggregatedData(start, end, format, callback) {
 
 function renderDynamicTable(dataArray, sensorType) {
     let head = document.getElementById('table-head'); let body = document.getElementById('history-table-body');
-    if(dataArray.length === 0) { head.innerHTML = ''; body.innerHTML = '<tr><td>Tidak ada data pada rentang ini.</td></tr>'; return; }
+    if(dataArray.length === 0) { head.innerHTML = ''; body.innerHTML = '<tr><td style="color:#0f172a;">Tidak ada data pada rentang ini.</td></tr>'; return; }
     
     let hHTML = `<tr><th rowspan="2" style="background:#e2e8f0; border-right:1px solid #cbd5e1;">Waktu</th><th colspan="${sensorType==='all'?6:1}">RECEIVER</th><th colspan="${sensorType==='all'?6:1}">SENDER</th></tr><tr>`;
     const cols = {
@@ -279,7 +280,7 @@ function renderDynamicTable(dataArray, sensorType) {
         else if(sensorType === 'co') { v_in = `<td>${p.c_in.toFixed(1)}</td>`; v_out = `<td>${p.c_out.toFixed(1)}</td>`; }
         else if(sensorType === 'pm25') { v_in = `<td>${p.p2_in.toFixed(1)}</td>`; v_out = `<td>${p.p2_out.toFixed(1)}</td>`; }
         else if(sensorType === 'pm10') { v_in = `<td>${p.p1_in.toFixed(1)}</td>`; v_out = `<td>${p.p1_out.toFixed(1)}</td>`; }
-        bHTML += `<tr><td style="background:#f8fafc; font-weight:bold; border-right:1px solid #cbd5e1;">${p.w}</td>${v_in}${v_out}</tr>`;
+        bHTML += `<tr><td style="background:#f8fafc; font-weight:bold; border-right:1px solid #cbd5e1; color:#0f172a;">${p.w}</td>${v_in}${v_out}</tr>`;
     });
     body.innerHTML = bHTML;
 }
@@ -288,7 +289,7 @@ window.processHistoryView = function() {
     let sVal = document.getElementById('hist-start').value, eVal = document.getElementById('hist-end').value;
     let format = document.getElementById('hist-format').value, sensorType = document.getElementById('hist-sensor').value;
     if(!sVal || !eVal) return alert("Pilih Waktu Mulai & Selesai.");
-    document.getElementById('history-table-body').innerHTML = '<tr><td colspan="100%">Mengekstrak data...</td></tr>';
+    document.getElementById('history-table-body').innerHTML = '<tr><td colspan="100%" style="color:#0f172a;">Mengekstrak data...</td></tr>';
     fetchAggregatedData(new Date(sVal), new Date(eVal), format, (data) => renderDynamicTable(data, sensorType));
 }
 
