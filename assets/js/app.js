@@ -27,7 +27,6 @@ const ispuLimits = {
 };
 
 function calculateISPU(value, type) {
-    if (type === 'SUHU' || type === 'HUM') return value; 
     let limits = ispuLimits[type];
     if (!limits) return 0;
     for (let i = 0; i < limits.length; i++) {
@@ -45,12 +44,7 @@ function getISPUStatus(score) {
     return { text: "BERBAHAYA", color: "#000000", emoji: "☠️" }; 
 }
 
-function valueToAngle(val, type) {
-    if(type === 'SUHU' || type === 'HUM') {
-        let max = type === 'SUHU' ? 50 : 100;
-        let v = Math.max(0, Math.min(val, max));
-        return -90 + (v / max) * 180;
-    }
+function valueToAngle(val) {
     let v = Math.max(0, Math.min(val, 500));
     if (v <= 50) return -90 + (v/50)*36;
     if (v <= 100) return -54 + ((v-50)/50)*36;
@@ -173,59 +167,56 @@ db.ref('/sensorData').on('value', (snap) => {
     let connEl = document.getElementById('conn-status'); let statText = document.getElementById('status-text');
     if(connEl && statText) { connEl.className = 'status-badge online'; statText.innerText = 'TERHUBUNG (LIVE)'; }
 
-    // Weather Box Dashboard
+    // Update Weather Box Dashboard
     if(document.getElementById('val-suhu-recv')) document.getElementById('val-suhu-recv').innerText = (d.suhu_indoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-recv')) document.getElementById('val-hum-recv').innerText = (d.hum_indoor||0).toFixed(1) + " %";
     if(document.getElementById('val-suhu-send')) document.getElementById('val-suhu-send').innerText = (d.suhu_outdoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-send')) document.getElementById('val-hum-send').innerText = (d.hum_outdoor||0).toFixed(1) + " %";
 
+    // Update Weather Box Speedometer (ID yg ditambah -spd)
+    if(document.getElementById('val-suhu-recv-spd')) document.getElementById('val-suhu-recv-spd').innerText = (d.suhu_indoor||0).toFixed(1) + " °C";
+    if(document.getElementById('val-hum-recv-spd')) document.getElementById('val-hum-recv-spd').innerText = (d.hum_indoor||0).toFixed(1) + " %";
+    if(document.getElementById('val-suhu-send-spd')) document.getElementById('val-suhu-send-spd').innerText = (d.suhu_outdoor||0).toFixed(1) + " °C";
+    if(document.getElementById('val-hum-send-spd')) document.getElementById('val-hum-send-spd').innerText = (d.hum_outdoor||0).toFixed(1) + " %";
+
+    let massData = {
+        no2_in: convertToMass(d.no2_indoor||0, 'NO2'), co_in: convertToMass(d.co_indoor||0, 'CO'),
+        pm25_in: d.pm25_indoor||0, pm10_in: d.pm10_indoor||0,
+        no2_out: convertToMass(d.no2_outdoor||0, 'NO2'), co_out: convertToMass(d.co_outdoor||0, 'CO'),
+        pm25_out: d.pm25_outdoor||0, pm10_out: d.pm10_outdoor||0
+    };
+
     const sensors = [
-        {val: convertToMass(d.no2_indoor||0,'NO2'), id:'no2-recv', type:'NO2'}, {val: convertToMass(d.co_indoor||0,'CO'), id:'co-recv', type:'CO'},
-        {val: d.pm25_indoor||0, id:'pm25-recv', type:'PM25'}, {val: d.pm10_indoor||0, id:'pm10-recv', type:'PM10'},
-        {val: convertToMass(d.no2_outdoor||0,'NO2'), id:'no2-send', type:'NO2'}, {val: convertToMass(d.co_outdoor||0,'CO'), id:'co-send', type:'CO'},
-        {val: d.pm25_outdoor||0, id:'pm25-send', type:'PM25'}, {val: d.pm10_outdoor||0, id:'pm10-send', type:'PM10'},
-        {val: d.suhu_indoor||0, id:'suhu-recv', type:'SUHU'}, {val: d.hum_indoor||0, id:'hum-recv', type:'HUM'},
-        {val: d.suhu_outdoor||0, id:'suhu-send', type:'SUHU'}, {val: d.hum_outdoor||0, id:'hum-send', type:'HUM'}
+        {val: massData.no2_in, id:'no2-recv', type:'NO2'}, {val: massData.co_in, id:'co-recv', type:'CO'},
+        {val: massData.pm25_in, id:'pm25-recv', type:'PM25'}, {val: massData.pm10_in, id:'pm10-recv', type:'PM10'},
+        {val: massData.no2_out, id:'no2-send', type:'NO2'}, {val: massData.co_out, id:'co-send', type:'CO'},
+        {val: massData.pm25_out, id:'pm25-send', type:'PM25'}, {val: massData.pm10_out, id:'pm10-send', type:'PM10'}
     ];
 
     sensors.forEach(s => {
         let score = calculateISPU(s.val, s.type);
-        let st = (s.type === 'SUHU' || s.type === 'HUM') ? { text: "INFO", color: "#3b82f6", emoji: "🌡️" } : getISPUStatus(score);
+        let st = getISPUStatus(score);
 
         // Speedo Update
-        if(document.getElementById(`needle-${s.id}`)) {
-            // Animasi fill warna bar arc khusus Suhu/Hum
-            if(s.type === 'SUHU' || s.type === 'HUM') {
-                let arc = document.getElementById(`arc-${s.id}`);
-                if(arc) { let max = s.type==='SUHU'?50:100; let pct = Math.max(0, Math.min(s.val/max, 1)); arc.style.strokeDashoffset = 235 - (pct * 235); }
-                document.getElementById(`needle-${s.id}`).style.transform = `rotate(${valueToAngle(s.val, s.type)}deg)`;
-            } else {
-                document.getElementById(`needle-${s.id}`).style.transform = `rotate(${valueToAngle(score, s.type)}deg)`;
-            }
-        }
+        if(document.getElementById(`needle-${s.id}`)) document.getElementById(`needle-${s.id}`).style.transform = `rotate(${valueToAngle(score)}deg)`;
         if(document.getElementById(`val-${s.id}`)) document.getElementById(`val-${s.id}`).innerHTML = `${s.val.toFixed(1)}`;
-        if(document.getElementById(`stat-${s.id}`)) { 
-            document.getElementById(`stat-${s.id}`).innerText = (s.type==='SUHU'||s.type==='HUM') ? 'CUACA LOKAL' : `ISPU: ${score} (${st.text})`; 
-            document.getElementById(`stat-${s.id}`).style.color = st.color; 
-        }
+        if(document.getElementById(`stat-${s.id}`)) { document.getElementById(`stat-${s.id}`).innerText = `ISPU: ${score} (${st.text})`; document.getElementById(`stat-${s.id}`).style.color = st.color; }
 
-        // Dashboard 8 Cards Update (Skip Suhu/Hum karena beda box)
-        if(s.type !== 'SUHU' && s.type !== 'HUM') {
-            if(document.getElementById(`val-${s.id}`)) document.getElementById(`val-${s.id}`).innerText = s.val.toFixed(1);
-            if(document.getElementById(`stat-${s.id}`)) { 
-                document.getElementById(`stat-${s.id}`).innerText = st.text; document.getElementById(`stat-${s.id}`).style.color = st.color;
-                document.getElementById(`emo-${s.id}`).innerText = st.emoji; document.getElementById(`card-${s.id}`).style.borderTopColor = st.color; 
-            }
+        // Dashboard 8 Cards Update
+        if(document.getElementById(`val-${s.id}`)) document.getElementById(`val-${s.id}`).innerText = s.val.toFixed(1);
+        if(document.getElementById(`stat-${s.id}`) && document.getElementById(`card-${s.id}`)) { 
+            document.getElementById(`stat-${s.id}`).innerText = st.text; document.getElementById(`stat-${s.id}`).style.color = st.color;
+            document.getElementById(`emo-${s.id}`).innerText = st.emoji; document.getElementById(`card-${s.id}`).style.borderTopColor = st.color; 
         }
     });
 
     // Update Live Charts
     if(gasChart && particleChart && gasChartOut && particleChartOut) {
         let now = new Date().toLocaleTimeString('id-ID', { hour12: false });
-        gasChart.data.labels.push(now); gasChart.data.datasets[0].data.push(convertToMass(d.no2_indoor||0,'NO2')); gasChart.data.datasets[1].data.push(convertToMass(d.co_indoor||0,'CO'));
-        particleChart.data.labels.push(now); particleChart.data.datasets[0].data.push(d.pm25_indoor||0); particleChart.data.datasets[1].data.push(d.pm10_indoor||0);
-        gasChartOut.data.labels.push(now); gasChartOut.data.datasets[0].data.push(convertToMass(d.no2_outdoor||0,'NO2')); gasChartOut.data.datasets[1].data.push(convertToMass(d.co_outdoor||0,'CO'));
-        particleChartOut.data.labels.push(now); particleChartOut.data.datasets[0].data.push(d.pm25_outdoor||0); particleChartOut.data.datasets[1].data.push(d.pm10_outdoor||0);
+        gasChart.data.labels.push(now); gasChart.data.datasets[0].data.push(massData.no2_in); gasChart.data.datasets[1].data.push(massData.co_in);
+        particleChart.data.labels.push(now); particleChart.data.datasets[0].data.push(massData.pm25_in); particleChart.data.datasets[1].data.push(massData.pm10_in);
+        gasChartOut.data.labels.push(now); gasChartOut.data.datasets[0].data.push(massData.no2_out); gasChartOut.data.datasets[1].data.push(massData.co_out);
+        particleChartOut.data.labels.push(now); particleChartOut.data.datasets[0].data.push(massData.pm25_out); particleChartOut.data.datasets[1].data.push(massData.pm10_out);
 
         if(gasChart.data.labels.length > maxDataPoints) { 
             [gasChart, particleChart, gasChartOut, particleChartOut].forEach(ch => { ch.data.labels.shift(); ch.data.datasets[0].data.shift(); ch.data.datasets[1].data.shift(); });
@@ -234,17 +225,17 @@ db.ref('/sensorData').on('value', (snap) => {
     }
     
     // Update Comparison Live
-    if(compSuhu && chartMode === 'live') {
+    if(compNo2 && chartMode === 'live') {
         let now = new Date().toLocaleTimeString('id-ID', { hour12: false });
         const pC = (ch, vI, vO) => { ch.data.labels.push(now); ch.data.datasets[0].data.push(vI); ch.data.datasets[1].data.push(vO); if(ch.data.labels.length>maxDataPoints){ ch.data.labels.shift(); ch.data.datasets[0].data.shift(); ch.data.datasets[1].data.shift(); } ch.update('none'); };
         pC(compSuhu, d.suhu_indoor||0, d.suhu_outdoor||0); pC(compHum, d.hum_indoor||0, d.hum_outdoor||0);
-        pC(compNo2, convertToMass(d.no2_indoor||0,'NO2'), convertToMass(d.no2_outdoor||0,'NO2')); pC(compCo, convertToMass(d.co_indoor||0,'CO'), convertToMass(d.co_outdoor||0,'CO'));
-        pC(compPm25, d.pm25_indoor||0, d.pm25_outdoor||0); pC(compPm10, d.pm10_indoor||0, d.pm10_outdoor||0);
+        pC(compNo2, massData.no2_in, massData.no2_out); pC(compCo, massData.co_in, massData.co_out); 
+        pC(compPm25, massData.pm25_in, massData.pm25_out); pC(compPm10, massData.pm10_in, massData.pm10_out);
     }
 });
 
 // =========================================================================
-// 5. FITUR FILTER TABLE & EXCEL (AMAN & DINAMIS)
+// 5. FITUR FILTER TABLE & EXCEL
 // =========================================================================
 function fetchAggregatedData(start, end, format, callback) {
     db.ref('/logs').limitToLast(30000).once('value').then(snap => {
@@ -270,8 +261,7 @@ function renderDynamicTable(dataArray, sensorType) {
     let head = document.getElementById('table-head'); let body = document.getElementById('history-table-body');
     if(dataArray.length === 0) { head.innerHTML = ''; body.innerHTML = '<tr><td>Tidak ada data pada rentang ini.</td></tr>'; return; }
     
-    // Header Dinamis
-    let hHTML = `<tr><th rowspan="2" style="background:#e2e8f0; border-right:2px solid #cbd5e1;">Waktu</th><th colspan="${sensorType==='all'?6:1}">RECEIVER</th><th colspan="${sensorType==='all'?6:1}">SENDER</th></tr><tr>`;
+    let hHTML = `<tr><th rowspan="2" style="background:#e2e8f0; border-right:1px solid #cbd5e1;">Waktu</th><th colspan="${sensorType==='all'?6:1}">RECEIVER</th><th colspan="${sensorType==='all'?6:1}">SENDER</th></tr><tr>`;
     const cols = {
         'suhu': '<th>Suhu (°C)</th>', 'hum': '<th>Hum (%)</th>', 'no2': '<th>NO2 (µg)</th>', 'co': '<th>CO (µg)</th>', 'pm25': '<th>PM 2.5</th>', 'pm10': '<th>PM 10</th>',
         'all': '<th>Suhu</th><th>Hum</th><th>NO2</th><th>CO</th><th>PM2.5</th><th>PM10</th>'
@@ -279,7 +269,6 @@ function renderDynamicTable(dataArray, sensorType) {
     hHTML += (cols[sensorType] || cols['all']) + (cols[sensorType] || cols['all']) + `</tr>`;
     head.innerHTML = hHTML;
 
-    // Body Dinamis
     let bHTML = '';
     dataArray.forEach(p => {
         let v_in = '', v_out = '';
@@ -290,8 +279,7 @@ function renderDynamicTable(dataArray, sensorType) {
         else if(sensorType === 'co') { v_in = `<td>${p.c_in.toFixed(1)}</td>`; v_out = `<td>${p.c_out.toFixed(1)}</td>`; }
         else if(sensorType === 'pm25') { v_in = `<td>${p.p2_in.toFixed(1)}</td>`; v_out = `<td>${p.p2_out.toFixed(1)}</td>`; }
         else if(sensorType === 'pm10') { v_in = `<td>${p.p1_in.toFixed(1)}</td>`; v_out = `<td>${p.p1_out.toFixed(1)}</td>`; }
-        
-        bHTML += `<tr><td style="background:#f8fafc; font-weight:bold; border-right:2px solid #cbd5e1;">${p.w}</td>${v_in}${v_out}</tr>`;
+        bHTML += `<tr><td style="background:#f8fafc; font-weight:bold; border-right:1px solid #cbd5e1;">${p.w}</td>${v_in}${v_out}</tr>`;
     });
     body.innerHTML = bHTML;
 }
@@ -300,7 +288,7 @@ window.processHistoryView = function() {
     let sVal = document.getElementById('hist-start').value, eVal = document.getElementById('hist-end').value;
     let format = document.getElementById('hist-format').value, sensorType = document.getElementById('hist-sensor').value;
     if(!sVal || !eVal) return alert("Pilih Waktu Mulai & Selesai.");
-    document.getElementById('history-table-body').innerHTML = '<tr><td colspan="100%">Mengekstrak data, mohon tunggu...</td></tr>';
+    document.getElementById('history-table-body').innerHTML = '<tr><td colspan="100%">Mengekstrak data...</td></tr>';
     fetchAggregatedData(new Date(sVal), new Date(eVal), format, (data) => renderDynamicTable(data, sensorType));
 }
 
