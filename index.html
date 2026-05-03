@@ -3,70 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nano Banana V2 - Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Air Quality - Dashboard</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root { --bg: #f0f4f8; --card: #ffffff; --txt: #1e293b; --txt-muted: #64748b; --shadow-dark: rgba(148, 163, 184, 0.2); }
-        body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; padding: 20px; margin: 0; }
-        .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: var(--card); border-radius: 15px; box-shadow: 5px 5px 15px var(--shadow-dark); margin-bottom: 30px; align-items: center;}
-        .nav-brand { color: #2563eb; font-size: 24px; font-weight: bold; }
-        .nav-links a { color: var(--txt-muted); text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; margin-left: 10px; }
-        .nav-links a.active { color: #ffffff; background: #2563eb; }
-        
-        .weather-container { display: flex; justify-content: space-around; background: var(--card); padding: 15px; border-radius: 15px; margin-bottom: 20px; box-shadow: 5px 5px 15px var(--shadow-dark); }
-        .w-item { text-align: center; } .w-val { font-size: 22px; font-weight: bold; color: #2563eb; } .w-lbl { font-size: 12px; color: var(--txt-muted); font-weight:bold; }
-        
-        .section-title { font-size: 18px; margin: 20px 0 10px 0; color: #334155; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px; }
-        .card { background: var(--card); padding: 20px; border-radius: 15px; text-align: center; box-shadow: 5px 5px 15px var(--shadow-dark); border-top: 5px solid #cbd5e1; }
-        .c-title { color: var(--txt-muted); font-size: 13px; font-weight: bold; margin-bottom: 10px; }
-        .c-val { font-size: 24px; font-weight: bold; } .c-unit { font-size: 12px; }
-        .c-emoji { font-size: 30px; margin: 10px 0; display: block; } .c-status { font-weight: bold; font-size: 13px; }
-        .chart-box { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 5px 5px 15px var(--shadow-dark); margin-top: 30px; }
-    </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-brand"><i class="fas fa-leaf"></i> NANO BANANA V2</div>
-        <div class="nav-links">
+    <div class="topbar">
+        <div class="topbar-brand"><i class="fa-solid fa-leaf"></i> AIR QUALITY</div>
+        <div class="topbar-menu">
             <a href="index.html" class="active">Dashboard</a>
             <a href="speedometer.html">Speedometer</a>
             <a href="grafik.html">Grafik</a>
             <a href="history.html">History</a>
+            <button id="btn-login" onclick="toggleLogin()" style="background: rgba(250, 204, 21, 0.2); border: 1px solid var(--accent-yellow); color: var(--accent-yellow); padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-left: 15px; font-weight: bold;">
+                <i class="fa-solid fa-lock"></i> Login Admin
+            </button>
         </div>
-    </nav>
-
-    <div class="weather-container">
-        <div class="w-item"><div class="w-lbl">SUHU RECEIVER</div><div class="w-val" id="val-suhu-in">-- °C</div></div>
-        <div class="w-item"><div class="w-lbl">HUM RECEIVER</div><div class="w-val" id="val-hum-in">-- %</div></div>
-        <div class="w-item" style="border-left: 2px solid #e2e8f0; padding-left:20px;"><div class="w-lbl">SUHU SENDER</div><div class="w-val" id="val-suhu-out">-- °C</div></div>
-        <div class="w-item"><div class="w-lbl">HUM SENDER</div><div class="w-val" id="val-hum-out">-- %</div></div>
     </div>
 
-    <div class="section-title">NODE RECEIVER (LIVE)</div>
-    <div class="grid">
-        <div class="card" id="card-no2-in"><div class="c-title">NO2 (Receiver)</div><div class="c-val"><span id="val-no2-in">0</span><span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-no2-in">⏳</span><div class="c-status" id="stat-no2-in">-</div></div>
-        <div class="card" id="card-co-in"><div class="c-title">CO (Receiver)</div><div class="c-val"><span id="val-co-in">0</span><span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-co-in">⏳</span><div class="c-status" id="stat-co-in">-</div></div>
-        <div class="card" id="card-pm25-in"><div class="c-title">PM 2.5 (Receiver)</div><div class="c-val"><span id="val-pm25-in">0</span><span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-pm25-in">⏳</span><div class="c-status" id="stat-pm25-in">-</div></div>
-        <div class="card" id="card-pm10-in"><div class="c-title">PM 10 (Receiver)</div><div class="c-val"><span id="val-pm10-in">0</span><span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-pm10-in">⏳</span><div class="c-status" id="stat-pm10-in">-</div></div>
-    </div>
+    <div class="page-wrap">
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><i class="fa-solid fa-house"></i> Pemantauan Real-time</h1>
+                    <p>Dashboard Kualitas Udara (Indoor vs Outdoor)</p>
+                    <p>Dashboard Kualitas Udara (Node Receiver vs Node Sender)</p>
+                </div>
+                <div id="conn-status" class="status-badge offline"><i class="fa-solid fa-cloud-bolt"></i> <span id="status-text">MENUNGGU DATA...</span></div>
+            </div>
+@@ -45,39 +45,26 @@
+        </div>
 
-    <div class="section-title">NODE SENDER (LIVE)</div>
-    <div class="grid">
-        <div class="card" id="card-no2-out"><div class="c-title">NO2 (Sender)</div><div class="c-val"><span id="val-no2-out">0</span><span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-no2-out">⏳</span><div class="c-status" id="stat-no2-out">-</div></div>
-        <div class="card" id="card-co-out"><div class="c-title">CO (Sender)</div><div class="c-val"><span id="val-co-out">0</span><span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-co-out">⏳</span><div class="c-status" id="stat-co-out">-</div></div>
-        <div class="card" id="card-pm25-out"><div class="c-title">PM 2.5 (Sender)</div><div class="c-val"><span id="val-pm25-out">0</span><span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-pm25-out">⏳</span><div class="c-status" id="stat-pm25-out">-</div></div>
-        <div class="card" id="card-pm10-out"><div class="c-title">PM 10 (Sender)</div><div class="c-val"><span id="val-pm10-out">0</span><span class="c-unit">µg/m³</span></div><span class="c-emoji" id="emo-pm10-out">⏳</span><div class="c-status" id="stat-pm10-out">-</div></div>
-    </div>
+        <div class="card-grid">
+            <div class="glass-card sensor-card" id="card-mq135_indoor"><div class="sensor-title">MQ-135 (Indoor)</div><div class="sensor-val"><span id="val-mq135_indoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135_indoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq7_indoor"><div class="sensor-title">MQ-7 (Indoor)</div><div class="sensor-val"><span id="val-mq7_indoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7_indoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm25_indoor"><div class="sensor-title">PM 2.5 (Indoor)</div><div class="sensor-val"><span id="val-pm25_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25_indoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm10_indoor"><div class="sensor-title">PM 10 (Indoor)</div><div class="sensor-val"><span id="val-pm10_indoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10_indoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq135-recv"><div class="sensor-title">MQ-135 (Receiver)</div><div class="sensor-val"><span id="val-mq135-recv">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135-recv">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq7-recv"><div class="sensor-title">MQ-7 (Receiver)</div><div class="sensor-val"><span id="val-mq7-recv">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7-recv">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm25-recv"><div class="sensor-title">PM 2.5 (Receiver)</div><div class="sensor-val"><span id="val-pm25-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25-recv">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm10-recv"><div class="sensor-title">PM 10 (Receiver)</div><div class="sensor-val"><span id="val-pm10-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10-recv">MEMUAT...</div></div>
 
-    <div class="chart-box">
-        <h3><i class="fas fa-burn"></i> Live Gas Beracun (Dashboard View)</h3>
-        <canvas id="liveChart" height="60"></canvas>
-    </div>
+            <div class="glass-card sensor-card" id="card-mq135_outdoor"><div class="sensor-title">MQ-135 (Outdoor)</div><div class="sensor-val"><span id="val-mq135_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135_outdoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq7_outdoor"><div class="sensor-title">MQ-7 (Outdoor)</div><div class="sensor-val"><span id="val-mq7_outdoor">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7_outdoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm25_outdoor"><div class="sensor-title">PM 2.5 (Outdoor)</div><div class="sensor-val"><span id="val-pm25_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25_outdoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm10_outdoor"><div class="sensor-title">PM 10 (Outdoor)</div><div class="sensor-val"><span id="val-pm10_outdoor">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10_outdoor">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq135-send"><div class="sensor-title">MQ-135 (Sender)</div><div class="sensor-val"><span id="val-mq135-send">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq135-send">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-mq7-send"><div class="sensor-title">MQ-7 (Sender)</div><div class="sensor-val"><span id="val-mq7-send">0.0</span> <span class="sensor-unit">PPM</span></div><div class="sensor-stat" id="stat-mq7-send">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm25-send"><div class="sensor-title">PM 2.5 (Sender)</div><div class="sensor-val"><span id="val-pm25-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm25-send">MEMUAT...</div></div>
+            <div class="glass-card sensor-card" id="card-pm10-send"><div class="sensor-title">PM 10 (Sender)</div><div class="sensor-val"><span id="val-pm10-send">0.0</span> <span class="sensor-unit">µg/m³</span></div><div class="sensor-stat" id="stat-pm10-send">MEMUAT...</div></div>
+        </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="app.js"></script>
+        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
+            <div class="glass-card">
+                <div class="section-title">Live: Gas Beracun (Indoor)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div>
+            </div>
+            <div class="glass-card">
+                <div class="section-title">Live: Partikel Debu (Indoor)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div>
+            </div>
+            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Receiver)</div><div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Receiver)</div><div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div></div>
+        </div>
+
+        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:20px;">
+            <div class="glass-card">
+                <div class="section-title">Live: Gas Beracun (Outdoor)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="gasChartOut"></canvas></div>
+            </div>
+            <div class="glass-card">
+                <div class="section-title">Live: Partikel Debu (Outdoor)</div>
+                <div class="chart-box" style="height: 250px;"><canvas id="particleChartOut"></canvas></div>
+            </div>
+            <div class="glass-card"><div class="section-title">Live: Gas Beracun (Sender)</div><div class="chart-box" style="height: 250px;"><canvas id="gasChartOut"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">Live: Partikel Debu (Sender)</div><div class="chart-box" style="height: 250px;"><canvas id="particleChartOut"></canvas></div></div>
+        </div>
+    </div>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
