@@ -5,22 +5,25 @@
     <title>Nano Banana V2 - History</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #1a1e29; --card: #232936; --txt: #e0e6ed; --shadow-light: rgba(255,255,255,0.05); --shadow-dark: rgba(0,0,0,0.5); }
+        :root { --bg: #f0f4f8; --card: #ffffff; --txt: #1e293b; --txt-muted: #64748b; --shadow-dark: rgba(148,163,184,0.2); }
         body { background: var(--bg); color: var(--txt); font-family: sans-serif; padding: 20px; margin: 0; }
-        .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: var(--card); border-radius: 15px; box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light); margin-bottom: 30px; }
-        .nav-links a { color: var(--txt); text-decoration: none; padding: 10px 20px; border-radius: 10px; box-shadow: 5px 5px 10px var(--shadow-dark), -2px -2px 5px var(--shadow-light); margin-left: 10px; }
-        .nav-links a.active { color: #3b82f6; box-shadow: inset 3px 3px 7px var(--shadow-dark); }
+        .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: var(--card); border-radius: 15px; box-shadow: 5px 5px 15px var(--shadow-dark); margin-bottom: 30px; align-items: center;}
+        .nav-brand { color: #2563eb; font-size: 24px; font-weight: bold; }
+        .nav-links a { color: var(--txt-muted); text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; margin-left: 10px; }
+        .nav-links a.active { color: #ffffff; background: #2563eb; }
         
-        table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 15px; overflow: hidden; box-shadow: 10px 10px 20px var(--shadow-dark); }
-        th, td { padding: 15px; text-align: center; border-bottom: 1px solid #333; }
-        th { background: #1e293b; color: #f59e0b; }
-        tr:hover { background: #334155; }
-        .btn-export { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
+        .table-container { background: var(--card); border-radius: 15px; padding: 20px; box-shadow: 5px 5px 15px var(--shadow-dark); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1300px; }
+        th, td { padding: 10px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        th { background: #f8fafc; color: #0f172a; border-bottom: 2px solid #cbd5e1; }
+        .th-group { background: #e2e8f0; font-weight: bold; border-right: 2px solid #cbd5e1; border-left: 2px solid #cbd5e1;}
+        tr:hover { background: #f1f5f9; }
+        .btn-export { background: #16a34a; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <div style="color:#f59e0b; font-size:24px; font-weight:bold;"><i class="fas fa-leaf"></i> NANO BANANA V2</div>
+        <div class="nav-brand"><i class="fas fa-leaf"></i> AIR QUALITY V2</div>
         <div class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="speedometer.html">Speedometer</a>
@@ -28,36 +31,37 @@
         </div>
     </nav>
 
-    <h2><i class="fas fa-history"></i> Log Data Sensor (Indoor)</h2>
-    <button class="btn-export" onclick="exportTableToCSV('Data_NanoBanana.csv')"><i class="fas fa-download"></i> Export Excel/CSV</button>
+    <h2><i class="fas fa-history"></i> Log Data Sensor Lengkap</h2>
+    <button class="btn-export" onclick="exportTableToCSV('Data_KTI_NanoBanana.csv')"><i class="fas fa-download"></i> Download Excel/CSV</button>
     
-    <table id="historyTable">
-        <thead>
-            <tr>
-                <th>Waktu</th>
-                <th>Suhu (°C)</th>
-                <th>Kelembaban (%)</th>
-                <th>NO2 (µg/m³)</th>
-                <th>CO (µg/m³)</th>
-                <th>PM 2.5 (µg/m³)</th>
-                <th>PM 10 (µg/m³)</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            </tbody>
-    </table>
+    <div class="table-container">
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th rowspan="2">Waktu</th>
+                    <th colspan="6" class="th-group">RECEIVER (INDOOR)</th>
+                    <th colspan="6" class="th-group">SENDER (OUTDOOR)</th>
+                </tr>
+                <tr>
+                    <th>Suhu (°C)</th><th>Hum (%)</th><th>NO2 (µg/m³)</th><th>CO (µg/m³)</th><th>PM 2.5 (µg/m³)</th><th>PM 10 (µg/m³)</th>
+                    <th>Suhu (°C)</th><th>Hum (%)</th><th>NO2 (µg/m³)</th><th>CO (µg/m³)</th><th>PM 2.5 (µg/m³)</th><th>PM 10 (µg/m³)</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="app.js"></script>
     <script>
-        // Fungsi Export sederhana
         function exportTableToCSV(filename) {
             var csv = [];
             var rows = document.querySelectorAll("table tr");
             for (var i = 0; i < rows.length; i++) {
                 var row = [], cols = rows[i].querySelectorAll("td, th");
-                for (var j = 0; j < cols.length; j++) row.push(cols[j].innerText);
+                for (var j = 0; j < cols.length; j++) row.push(cols[j].innerText.replace(/,/g, "")); 
                 csv.push(row.join(","));
             }
             var csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
