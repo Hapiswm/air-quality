@@ -5,22 +5,23 @@
     <title>Nano Banana V2 - Speedometer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Menggunakan style CSS base yang sama dengan index.html */
-        :root { --bg: #1a1e29; --card: #232936; --txt: #e0e6ed; --shadow-light: rgba(255,255,255,0.05); --shadow-dark: rgba(0,0,0,0.5); }
+        :root { --bg: #f0f4f8; --card: #ffffff; --txt: #1e293b; --txt-muted: #64748b; --shadow-light: rgba(255,255,255,1); --shadow-dark: rgba(148,163,184,0.2); }
         body { background: var(--bg); color: var(--txt); font-family: sans-serif; padding: 20px; margin: 0; }
-        .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: var(--card); border-radius: 15px; box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light); margin-bottom: 30px; }
-        .nav-links a { color: var(--txt); text-decoration: none; padding: 10px 20px; border-radius: 10px; box-shadow: 5px 5px 10px var(--shadow-dark), -2px -2px 5px var(--shadow-light); margin-left: 10px; }
-        .nav-links a.active { color: #3b82f6; box-shadow: inset 3px 3px 7px var(--shadow-dark); }
+        .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: var(--card); border-radius: 15px; box-shadow: 5px 5px 15px var(--shadow-dark); margin-bottom: 30px; align-items: center;}
+        .nav-brand { color: #2563eb; font-size: 24px; font-weight: bold; }
+        .nav-links a { color: var(--txt-muted); text-decoration: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; margin-left: 10px; }
+        .nav-links a.active { color: #ffffff; background: #2563eb; }
+        .section-header { margin-top: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;}
         
-        .gauge-container { display: flex; justify-content: center; gap: 40px; margin-bottom: 40px; }
-        .gauge-card { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; box-shadow: 10px 10px 20px var(--shadow-dark), -5px -5px 15px var(--shadow-light); width: 250px; }
-        .g-title { color: #94a3b8; font-size: 14px; font-weight: bold; margin-bottom: 10px; }
-        .g-value { font-size: 30px; font-weight: bold; margin-top: 10px; color: #3b82f6; }
+        .gauge-container { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;}
+        .gauge-card { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; box-shadow: 5px 5px 15px var(--shadow-dark); width: 220px; }
+        .g-title { color: var(--txt-muted); font-size: 14px; font-weight: bold; margin-bottom: 10px; }
+        .g-value { font-size: 30px; font-weight: bold; margin-top: 10px; color: #2563eb; }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <div style="color:#f59e0b; font-size:24px; font-weight:bold;"><i class="fas fa-leaf"></i> NANO BANANA V2</div>
+        <div class="nav-brand"><i class="fas fa-leaf"></i> AIR QUALITY V2</div>
         <div class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="speedometer.html" class="active">Speedometer</a>
@@ -28,22 +29,22 @@
         </div>
     </nav>
 
+    <div class="section-header"><h3>Node Receiver</h3></div>
     <div class="gauge-container">
-        <div class="gauge-card">
-            <div class="g-title"><i class="fas fa-temperature-high"></i> Suhu (°C)</div>
-            <div class="g-value" id="spd-suhu">0.0</div>
-        </div>
-        <div class="gauge-card">
-            <div class="g-title"><i class="fas fa-tint"></i> Kelembaban (%)</div>
-            <div class="g-value" id="spd-hum">0.0</div>
-        </div>
+        <div class="gauge-card"><div class="g-title">Suhu (°C)</div><div class="g-value" id="spd-suhu-in">0.0</div></div>
+        <div class="gauge-card"><div class="g-title">NO2 (µg/m³)</div><div class="g-value" id="spd-no2-in">0</div><div id="ispu-spd-no2-in" style="font-weight:bold; margin-top:5px;">-</div></div>
+        <div class="gauge-card"><div class="g-title">CO (µg/m³)</div><div class="g-value" id="spd-co-in">0</div><div id="ispu-spd-co-in" style="font-weight:bold; margin-top:5px;">-</div></div>
+        <div class="gauge-card"><div class="g-title">PM 2.5 (µg/m³)</div><div class="g-value" id="spd-pm25-in">0</div><div id="ispu-spd-pm25-in" style="font-weight:bold; margin-top:5px;">-</div></div>
+        <div class="gauge-card"><div class="g-title">PM 10 (µg/m³)</div><div class="g-value" id="spd-pm10-in">0</div><div id="ispu-spd-pm10-in" style="font-weight:bold; margin-top:5px;">-</div></div>
     </div>
 
+    <div class="section-header"><h3>Node Sender</h3></div>
     <div class="gauge-container">
-        <div class="gauge-card"><div class="g-title">NO2 (µg/m³)</div><div class="g-value" id="spd-no2">0</div><div id="ispu-spd-no2" style="margin-top:5px;font-weight:bold;">-</div></div>
-        <div class="gauge-card"><div class="g-title">CO (µg/m³)</div><div class="g-value" id="spd-co">0</div><div id="ispu-spd-co" style="margin-top:5px;font-weight:bold;">-</div></div>
-        <div class="gauge-card"><div class="g-title">PM 2.5 (µg/m³)</div><div class="g-value" id="spd-pm25">0</div><div id="ispu-spd-pm25" style="margin-top:5px;font-weight:bold;">-</div></div>
-        <div class="gauge-card"><div class="g-title">PM 10 (µg/m³)</div><div class="g-value" id="spd-pm10">0</div><div id="ispu-spd-pm10" style="margin-top:5px;font-weight:bold;">-</div></div>
+        <div class="gauge-card"><div class="g-title">Suhu (°C)</div><div class="g-value" id="spd-suhu-out">0.0</div></div>
+        <div class="gauge-card"><div class="g-title">NO2 (µg/m³)</div><div class="g-value" id="spd-no2-out">0</div><div id="ispu-spd-no2-out" style="font-weight:bold; margin-top:5px;">-</div></div>
+        <div class="gauge-card"><div class="g-title">CO (µg/m³)</div><div class="g-value" id="spd-co-out">0</div><div id="ispu-spd-co-out" style="font-weight:bold; margin-top:5px;">-</div></div>
+        <div class="gauge-card"><div class="g-title">PM 2.5 (µg/m³)</div><div class="g-value" id="spd-pm25-out">0</div><div id="ispu-spd-pm25-out" style="font-weight:bold; margin-top:5px;">-</div></div>
+        <div class="gauge-card"><div class="g-title">PM 10 (µg/m³)</div><div class="g-value" id="spd-pm10-out">0</div><div id="ispu-spd-pm10-out" style="font-weight:bold; margin-top:5px;">-</div></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
