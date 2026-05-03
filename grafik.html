@@ -10,14 +10,14 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; }
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --accent-blue: #2563eb; }
         body { background-color: var(--bg); color: var(--text); }
         .topbar { background: var(--card); border-bottom: 1px solid var(--border); }
         .topbar-brand, .topbar-menu a { color: var(--text); }
-        .topbar-menu a.active { background: #2563eb; color: white; }
+        .topbar-menu a.active { background: var(--accent-blue); color: white; }
         .glass-card { background: var(--card); border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .section-title { color: #1e293b; border-bottom: 1px solid var(--border); margin-bottom: 10px; padding-bottom: 5px; font-weight: bold;}
         .date-input { padding: 8px 12px; border-radius: 6px; background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; outline: none; cursor: pointer; font-family: inherit;}
+        .section-title { color: var(--text); font-weight: bold; border-bottom: 1px solid var(--border); padding-bottom:5px; margin-bottom:10px;}
     </style>
 </head>
 <body>
@@ -34,13 +34,13 @@
     <div class="page-wrap">
         <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div>
-                <h1 style="color:#1e293b;"><i class="fa-solid fa-chart-line"></i> Grafik Komparasi Transmisi</h1>
-                <p style="color:#64748b;">Pantau fluktuasi Node Receiver vs Node Sender berdasarkan rentang waktu spesifik.</p>
+                <h1><i class="fa-solid fa-chart-line"></i> Grafik Komparasi Transmisi</h1>
+                <p>Pantau fluktuasi Node Receiver vs Node Sender berdasarkan rentang waktu.</p>
             </div>
             
-            <div style="background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 600px;">
+            <div style="background: var(--card); padding: 15px; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <div style="margin-bottom: 10px;">
-                    <span style="color: #2563eb; font-weight: bold; margin-right: 10px;"><i class="fa-solid fa-clock"></i> Mode Grafik:</span>
+                    <span style="color: var(--accent-blue); font-weight: bold; margin-right: 10px;"><i class="fa-solid fa-clock"></i> Mode Grafik:</span>
                     <select id="chart-time-filter" onchange="changeChartMode()" class="date-input">
                         <option value="live">Live (Real-time)</option>
                         <option value="24h">History 24 Jam Terakhir</option>
@@ -50,23 +50,23 @@
                 
                 <div id="custom-chart-controls" style="display:none; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px;">
                     <input type="datetime-local" id="chart-start" class="date-input">
-                    <span style="color: #1e293b; font-weight: bold;">s/d</span>
+                    <span style="color: var(--text); font-weight: bold;">s/d</span>
                     <input type="datetime-local" id="chart-end" class="date-input">
                     <button onclick="applyCustomChart()" style="background: #2563eb; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight:bold;"><i class="fa-solid fa-magnifying-glass"></i> Tampilkan</button>
                 </div>
             </div>
         </div>
 
-        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:15px;">
-            <div class="glass-card"><div class="section-title">Suhu (°C)</div><div class="chart-box" style="height: 250px;"><canvas id="chart-suhu"></canvas></div></div>
-            <div class="glass-card"><div class="section-title">Kelembaban (%)</div><div class="chart-box" style="height: 250px;"><canvas id="chart-hum"></canvas></div></div>
+        <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-bottom:20px;">
+            <div class="glass-card"><div class="section-title">Suhu (°C)</div><div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="chart-suhu"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">Kelembaban (%)</div><div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="chart-hum"></canvas></div></div>
         </div>
 
         <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="glass-card"><div class="section-title">NO2 (µg/m³)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-no2"></canvas></div></div>
-            <div class="glass-card"><div class="section-title">CO (µg/m³)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-co"></canvas></div></div>
-            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 2.5 (µg/m³)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-pm25"></canvas></div></div>
-            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 10 (µg/m³)</div><div class="chart-box" style="height: 300px;"><canvas id="chart-pm10"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">NO2 (µg/m³)</div><div class="chart-box" style="height: 300px; background:white; border:none;"><canvas id="chart-no2"></canvas></div></div>
+            <div class="glass-card"><div class="section-title">CO (µg/m³)</div><div class="chart-box" style="height: 300px; background:white; border:none;"><canvas id="chart-co"></canvas></div></div>
+            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 2.5 (µg/m³)</div><div class="chart-box" style="height: 300px; background:white; border:none;"><canvas id="chart-pm25"></canvas></div></div>
+            <div class="glass-card" style="margin-top: 15px;"><div class="section-title">PM 10 (µg/m³)</div><div class="chart-box" style="height: 300px; background:white; border:none;"><canvas id="chart-pm10"></canvas></div></div>
         </div>
     </div>
     <script src="assets/js/app.js"></script>
