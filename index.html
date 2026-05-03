@@ -10,22 +10,22 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* CSS OVERRIDE UNTUK LIGHT MODE (TEMA PUTIH) */
-        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --accent-yellow: #2563eb; }
+        /* OVERRIDE TEMA PUTIH BERSIH */
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --accent-blue: #2563eb; }
         body { background-color: var(--bg); color: var(--text); }
         .topbar { background: var(--card); border-bottom: 1px solid var(--border); }
         .topbar-brand, .topbar-menu a { color: var(--text); }
-        .topbar-menu a.active { background: #2563eb; color: white; }
+        .topbar-menu a.active { background: var(--accent-blue); color: white; }
         .glass-card { background: var(--card); border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .sensor-title { color: var(--text-muted); font-weight: bold; }
         .sensor-val { color: var(--text); }
-        .section-title { color: #1e293b !important; border-bottom: 2px solid var(--border); padding-bottom: 5px; margin-bottom: 15px;}
+        .section-title { color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 5px; margin-bottom: 15px;}
         
-        /* Box Suhu & Kelembaban */
-        .weather-box { display: flex; justify-content: space-between; background: var(--card); padding: 15px 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* Panel Suhu & Hum */
+        .weather-panel { display: flex; justify-content: space-around; background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); align-items: center;}
         .w-item { text-align: center; flex: 1; }
-        .w-val { font-size: 24px; font-weight: bold; color: #2563eb; }
-        .w-lbl { font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
+        .w-val { font-size: 24px; font-weight: bold; color: var(--accent-blue); margin-top: 5px;}
+        .w-lbl { font-size: 13px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
         .w-divider { border-left: 2px solid var(--border); }
     </style>
 </head>
@@ -54,11 +54,11 @@
             </div>
         </div>
 
-        <div class="weather-box">
-            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Receiver</div><div class="w-val" id="val-suhu-recv">-- °C</div></div>
-            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Receiver</div><div class="w-val" id="val-hum-recv">-- %</div></div>
-            <div class="w-item w-divider"><div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Sender</div><div class="w-val" id="val-suhu-send">-- °C</div></div>
-            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Sender</div><div class="w-val" id="val-hum-send">-- %</div></div>
+        <div class="weather-panel">
+            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Receiver</div><div class="w-val" id="val-suhu-recv">0.0 °C</div></div>
+            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Receiver</div><div class="w-val" id="val-hum-recv">0.0 %</div></div>
+            <div class="w-item w-divider"><div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Sender</div><div class="w-val" id="val-suhu-send">0.0 °C</div></div>
+            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Sender</div><div class="w-val" id="val-hum-send">0.0 %</div></div>
         </div>
 
         <div class="section-title"><i class="fa-solid fa-satellite-dish"></i> INDIKATOR NODE RECEIVER</div>
@@ -80,19 +80,19 @@
         <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top:30px;">
             <div class="glass-card">
                 <div class="section-title">Live: Gas Beracun (Receiver)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div>
+                <div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="gasChart"></canvas></div>
             </div>
             <div class="glass-card">
                 <div class="section-title">Live: Partikel Debu (Receiver)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div>
+                <div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="particleChart"></canvas></div>
             </div>
             <div class="glass-card">
                 <div class="section-title">Live: Gas Beracun (Sender)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="gasChartOut"></canvas></div>
+                <div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="gasChartOut"></canvas></div>
             </div>
             <div class="glass-card">
                 <div class="section-title">Live: Partikel Debu (Sender)</div>
-                <div class="chart-box" style="height: 250px;"><canvas id="particleChartOut"></canvas></div>
+                <div class="chart-box" style="height: 250px; background:white; border:none;"><canvas id="particleChartOut"></canvas></div>
             </div>
         </div>
     </div>
