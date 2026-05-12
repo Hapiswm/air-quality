@@ -9,7 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        /* PERBAIKAN TEMA PUTIH & TEKS GELAP */
         :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-muted: #475569; --border: #cbd5e1; --accent-blue: #2563eb; }
         body, .page-wrap { background: var(--bg) !important; color: var(--text) !important; }
         
@@ -99,11 +98,11 @@
         }
 
         document.getElementById('grid-recv').innerHTML = 
-            createSpeedoISPU('no2-recv','NO2 Receiver') + createSpeedoISPU('co-recv','CO Receiver') + 
+            createSpeedoISPU('pm1-recv','PM 1.0 Receiver') + createSpeedoISPU('co-recv','CO Receiver') + 
             createSpeedoISPU('pm25-recv','PM 2.5 Receiver') + createSpeedoISPU('pm10-recv','PM 10 Receiver');
             
         document.getElementById('grid-send').innerHTML = 
-            createSpeedoISPU('no2-send','NO2 Sender') + createSpeedoISPU('co-send','CO Sender') + 
+            createSpeedoISPU('pm1-send','PM 1.0 Sender') + createSpeedoISPU('co-send','CO Sender') + 
             createSpeedoISPU('pm25-send','PM 2.5 Sender') + createSpeedoISPU('pm10-send','PM 10 Sender');
     </script>
     <script src="assets/js/app.js"></script>
