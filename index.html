@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* CSS UNTUK MEMAKSA TAMPILAN PUTIH & TEKS GELAP (MENGATASI OVERRIDE STYLE.CSS) */
         :root { 
             --bg-putih: #ffffff; 
             --teks-gelap: #0f172a; 
@@ -21,61 +20,28 @@
             --biru-akses: #2563eb; 
         }
 
-        body, .page-wrap { 
-            background-color: var(--bg-putih) !important; 
-            background: var(--bg-putih) !important; 
-            color: var(--teks-gelap) !important; 
-        }
+        body, .page-wrap { background: var(--bg-putih) !important; color: var(--teks-gelap) !important; }
 
-        /* Navigasi */
         .topbar { background: #f8fafc !important; border-bottom: 1px solid var(--border-abu); }
         .topbar-brand, .topbar-menu a { color: var(--teks-gelap) !important; }
         .topbar-menu a.active { background: var(--biru-akses) !important; color: white !important; }
 
-        /* Judul & Teks */
         h1, h2, h3, p, span, div, label { color: var(--teks-gelap) !important; }
         .page-header p { color: var(--teks-abu) !important; font-weight: 500; }
         .section-title { color: var(--teks-gelap) !important; font-weight: 800; border-bottom: 2px solid var(--border-abu); padding-bottom: 5px; margin-bottom: 15px; margin-top: 30px; text-transform: uppercase; font-size: 16px;}
 
-        /* Panel Cuaca (Suhu & Hum) */
-        .weather-panel { 
-            display: flex; 
-            justify-content: space-around; 
-            background: #ffffff !important; 
-            padding: 20px; 
-            border-radius: 12px; 
-            border: 1px solid var(--border-abu); 
-            margin-bottom: 25px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            align-items: center;
-        }
+        .weather-panel { display: flex; justify-content: space-around; background: #ffffff !important; padding: 20px; border-radius: 12px; border: 1px solid var(--border-abu); margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); align-items: center;}
         .w-item { text-align: center; flex: 1; }
         .w-val { font-size: 26px; font-weight: 800; color: var(--biru-akses) !important; margin-top: 5px;}
         .w-lbl { font-size: 13px; font-weight: bold; color: var(--teks-abu) !important; text-transform: uppercase; }
         .w-divider { border-left: 2px solid var(--border-abu); }
 
-        /* Kotak Sensor (8 Kotak) */
-        .glass-card { 
-            background: #ffffff !important; 
-            border: 1px solid var(--border-abu) !important; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; 
-            border-radius: 15px !important;
-        }
+        .glass-card { background: #ffffff !important; border: 1px solid var(--border-abu) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; border-radius: 15px !important;}
         .sensor-title { color: var(--teks-abu) !important; font-weight: bold; font-size: 12px; }
         .sensor-val { color: var(--teks-gelap) !important; font-weight: 800; margin: 10px 0; }
         .sensor-stat { font-weight: 800; font-size: 14px; }
 
-        /* Panel Kontrol Admin */
-        #admin-panel { 
-            background: #f1f5f9; 
-            padding: 20px; 
-            border-radius: 12px; 
-            border: 1px solid var(--biru-akses); 
-            margin-bottom: 25px; 
-            text-align: center;
-        }
-
-        /* Grafik Live */
+        #admin-panel { background: #f1f5f9; padding: 20px; border-radius: 12px; border: 1px solid var(--biru-akses); margin-bottom: 25px; text-align: center;}
         .chart-box { background: white !important; border: 1px solid var(--border-abu) !important; border-radius: 12px; padding: 10px; }
     </style>
 </head>
@@ -119,32 +85,20 @@
         </div>
 
         <div class="weather-panel">
-            <div class="w-item">
-                <div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Receiver</div>
-                <div class="w-val" id="val-suhu-recv">0.0 °C</div>
-            </div>
-            <div class="w-item">
-                <div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Receiver</div>
-                <div class="w-val" id="val-hum-recv">0.0 %</div>
-            </div>
+            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Receiver</div><div class="w-val" id="val-suhu-recv">0.0 °C</div></div>
+            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Receiver</div><div class="w-val" id="val-hum-recv">0.0 %</div></div>
             <div class="w-divider"></div>
-            <div class="w-item">
-                <div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Sender</div>
-                <div class="w-val" id="val-suhu-send">0.0 °C</div>
-            </div>
-            <div class="w-item">
-                <div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Sender</div>
-                <div class="w-val" id="val-hum-send">0.0 %</div>
-            </div>
+            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-temperature-half"></i> Suhu Sender</div><div class="w-val" id="val-suhu-send">0.0 °C</div></div>
+            <div class="w-item"><div class="w-lbl"><i class="fa-solid fa-droplet"></i> Hum Sender</div><div class="w-val" id="val-hum-send">0.0 %</div></div>
         </div>
 
         <div class="section-title"><i class="fa-solid fa-satellite-dish"></i> Indikator Node Receiver</div>
         <div class="card-grid">
-            <div class="glass-card sensor-card" id="card-no2-recv">
-                <div class="sensor-title">NO2 (Receiver)</div>
-                <div class="sensor-val"><span id="val-no2-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div>
-                <div id="emo-no2-recv" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
-                <div class="sensor-stat" id="stat-no2-recv">MEMUAT...</div>
+            <div class="glass-card sensor-card" id="card-pm1-recv">
+                <div class="sensor-title">PM 1.0 (Receiver)</div>
+                <div class="sensor-val"><span id="val-pm1-recv">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-pm1-recv" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-pm1-recv">MEMUAT...</div>
             </div>
             <div class="glass-card sensor-card" id="card-co-recv">
                 <div class="sensor-title">CO (Receiver)</div>
@@ -168,11 +122,11 @@
 
         <div class="section-title"><i class="fa-solid fa-tower-broadcast"></i> Indikator Node Sender</div>
         <div class="card-grid">
-            <div class="glass-card sensor-card" id="card-no2-send">
-                <div class="sensor-title">NO2 (Sender)</div>
-                <div class="sensor-val"><span id="val-no2-send">0.0</span> <span class="sensor-unit">µg/m³</span></div>
-                <div id="emo-no2-send" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
-                <div class="sensor-stat" id="stat-no2-send">MEMUAT...</div>
+            <div class="glass-card sensor-card" id="card-pm1-send">
+                <div class="sensor-title">PM 1.0 (Sender)</div>
+                <div class="sensor-val"><span id="val-pm1-send">0.0</span> <span class="sensor-unit">µg/m³</span></div>
+                <div id="emo-pm1-send" style="font-size: 24px; margin-bottom: 5px;">⏳</div>
+                <div class="sensor-stat" id="stat-pm1-send">MEMUAT...</div>
             </div>
             <div class="glass-card sensor-card" id="card-co-send">
                 <div class="sensor-title">CO (Sender)</div>
@@ -197,19 +151,19 @@
         <div class="section-title"><i class="fa-solid fa-chart-line"></i> Visualisasi Grafik Real-time</div>
         <div class="card-grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
             <div class="glass-card">
-                <div class="sensor-title" style="padding: 10px;">Live: Gas Beracun (Receiver)</div>
+                <div class="sensor-title" style="padding: 10px;">Live: PM 1.0 & CO (Receiver)</div>
                 <div class="chart-box" style="height: 250px;"><canvas id="gasChart"></canvas></div>
             </div>
             <div class="glass-card">
-                <div class="sensor-title" style="padding: 10px;">Live: Partikel Debu (Receiver)</div>
+                <div class="sensor-title" style="padding: 10px;">Live: PM 2.5 & PM 10 (Receiver)</div>
                 <div class="chart-box" style="height: 250px;"><canvas id="particleChart"></canvas></div>
             </div>
             <div class="glass-card">
-                <div class="sensor-title" style="padding: 10px;">Live: Gas Beracun (Sender)</div>
+                <div class="sensor-title" style="padding: 10px;">Live: PM 1.0 & CO (Sender)</div>
                 <div class="chart-box" style="height: 250px;"><canvas id="gasChartOut"></canvas></div>
             </div>
             <div class="glass-card">
-                <div class="sensor-title" style="padding: 10px;">Live: Partikel Debu (Sender)</div>
+                <div class="sensor-title" style="padding: 10px;">Live: PM 2.5 & PM 10 (Sender)</div>
                 <div class="chart-box" style="height: 250px;"><canvas id="particleChartOut"></canvas></div>
             </div>
         </div>
