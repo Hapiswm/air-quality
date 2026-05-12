@@ -15,13 +15,13 @@ let chartMode = 'live';
 // =========================================================================
 function convertToMass(ppm, gasType) {
     if (gasType === 'CO') return ppm * 1145.6; 
-    return ppm; // PM sudah dalam bentuk massa (µg/m3)
+    return ppm; 
 }
 
 const ispuLimits = {
     'PM10': [[0,50,0,50], [51,150,51,100], [151,350,101,200], [351,420,201,300], [421,500,301,500]],
     'PM25': [[0,15.5,0,50], [15.6,55.4,51,100], [55.5,150.4,101,200], [150.5,250.4,201,300], [250.5,500,301,500]],
-    'PM1':  [[0,15.5,0,50], [15.6,55.4,51,100], [55.5,150.4,101,200], [150.5,250.4,201,300], [250.5,500,301,500]], // Menggunakan baseline PM2.5
+    'PM1':  [[0,10,0,50], [10.1,30,51,100], [30.1,80,101,200], [80.1,150,201,300], [150.1,300,301,500]],
     'CO':   [[0,4000,0,50], [4001,8000,51,100], [8001,15000,101,200], [15001,30000,201,300], [30001,45000,301,500]]
 };
 
@@ -75,18 +75,18 @@ function fetchHistoricalDataForCharts(chartsObj, isDashboard) {
         snap.forEach(child => {
             let d = child.val();
             let tStr = new Date(getRealTimeFromFirebaseKey(child.key)).toLocaleTimeString('id-ID', { hour12: false });
-            let p1i = d.pm1_indoor||0, c0i = convertToMass(d.co_indoor||0,'CO');
-            let p1o = d.pm1_outdoor||0, c0o = convertToMass(d.co_outdoor||0,'CO');
+            let c0i = convertToMass(d.co_indoor||0,'CO');
+            let c0o = convertToMass(d.co_outdoor||0,'CO');
 
             if (isDashboard) {
-                chartsObj.gas.data.labels.push(tStr); chartsObj.gas.data.datasets[0].data.push(p1i); chartsObj.gas.data.datasets[1].data.push(c0i);
+                chartsObj.gas.data.labels.push(tStr); chartsObj.gas.data.datasets[0].data.push(d.pm1_indoor||0); chartsObj.gas.data.datasets[1].data.push(c0i);
                 chartsObj.part.data.labels.push(tStr); chartsObj.part.data.datasets[0].data.push(d.pm25_indoor||0); chartsObj.part.data.datasets[1].data.push(d.pm10_indoor||0);
-                chartsObj.gasOut.data.labels.push(tStr); chartsObj.gasOut.data.datasets[0].data.push(p1o); chartsObj.gasOut.data.datasets[1].data.push(c0o);
+                chartsObj.gasOut.data.labels.push(tStr); chartsObj.gasOut.data.datasets[0].data.push(d.pm1_outdoor||0); chartsObj.gasOut.data.datasets[1].data.push(c0o);
                 chartsObj.partOut.data.labels.push(tStr); chartsObj.partOut.data.datasets[0].data.push(d.pm25_outdoor||0); chartsObj.partOut.data.datasets[1].data.push(d.pm10_outdoor||0);
             } else {
                 chartsObj.suhu.data.labels.push(tStr); chartsObj.suhu.data.datasets[0].data.push(d.suhu_indoor||0); chartsObj.suhu.data.datasets[1].data.push(d.suhu_outdoor||0);
                 chartsObj.hum.data.labels.push(tStr); chartsObj.hum.data.datasets[0].data.push(d.hum_indoor||0); chartsObj.hum.data.datasets[1].data.push(d.hum_outdoor||0);
-                chartsObj.p1.data.labels.push(tStr); chartsObj.p1.data.datasets[0].data.push(p1i); chartsObj.p1.data.datasets[1].data.push(p1o);
+                chartsObj.p1.data.labels.push(tStr); chartsObj.p1.data.datasets[0].data.push(d.pm1_indoor||0); chartsObj.p1.data.datasets[1].data.push(d.pm1_outdoor||0);
                 chartsObj.c0.data.labels.push(tStr); chartsObj.c0.data.datasets[0].data.push(c0i); chartsObj.c0.data.datasets[1].data.push(c0o);
                 chartsObj.p25.data.labels.push(tStr); chartsObj.p25.data.datasets[0].data.push(d.pm25_indoor||0); chartsObj.p25.data.datasets[1].data.push(d.pm25_outdoor||0);
                 chartsObj.p10.data.labels.push(tStr); chartsObj.p10.data.datasets[0].data.push(d.pm10_indoor||0); chartsObj.p10.data.datasets[1].data.push(d.pm10_outdoor||0);
@@ -167,11 +167,13 @@ db.ref('/sensorData').on('value', (snap) => {
     let connEl = document.getElementById('conn-status'); let statText = document.getElementById('status-text');
     if(connEl && statText) { connEl.className = 'status-badge online'; statText.innerText = 'TERHUBUNG (LIVE)'; }
 
+    // Weather Box Dashboard
     if(document.getElementById('val-suhu-recv')) document.getElementById('val-suhu-recv').innerText = (d.suhu_indoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-recv')) document.getElementById('val-hum-recv').innerText = (d.hum_indoor||0).toFixed(1) + " %";
     if(document.getElementById('val-suhu-send')) document.getElementById('val-suhu-send').innerText = (d.suhu_outdoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-send')) document.getElementById('val-hum-send').innerText = (d.hum_outdoor||0).toFixed(1) + " %";
 
+    // Weather Box Speedometer
     if(document.getElementById('val-suhu-recv-spd')) document.getElementById('val-suhu-recv-spd').innerText = (d.suhu_indoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-recv-spd')) document.getElementById('val-hum-recv-spd').innerText = (d.hum_indoor||0).toFixed(1) + " %";
     if(document.getElementById('val-suhu-send-spd')) document.getElementById('val-suhu-send-spd').innerText = (d.suhu_outdoor||0).toFixed(1) + " °C";
@@ -195,10 +197,12 @@ db.ref('/sensorData').on('value', (snap) => {
         let score = calculateISPU(s.val, s.type);
         let st = getISPUStatus(score);
 
+        // Speedo Update
         if(document.getElementById(`needle-${s.id}`)) document.getElementById(`needle-${s.id}`).style.transform = `rotate(${valueToAngle(score)}deg)`;
         if(document.getElementById(`val-${s.id}`)) document.getElementById(`val-${s.id}`).innerHTML = `${s.val.toFixed(1)}`;
         if(document.getElementById(`stat-${s.id}`)) { document.getElementById(`stat-${s.id}`).innerText = `ISPU: ${score} (${st.text})`; document.getElementById(`stat-${s.id}`).style.color = st.color; }
 
+        // Dashboard 8 Cards Update
         if(document.getElementById(`val-${s.id}`)) document.getElementById(`val-${s.id}`).innerText = s.val.toFixed(1);
         if(document.getElementById(`stat-${s.id}`) && document.getElementById(`card-${s.id}`)) { 
             document.getElementById(`stat-${s.id}`).innerText = st.text; document.getElementById(`stat-${s.id}`).style.color = st.color;
@@ -206,6 +210,7 @@ db.ref('/sensorData').on('value', (snap) => {
         }
     });
 
+    // Update Live Charts
     if(gasChart && particleChart && gasChartOut && particleChartOut) {
         let now = new Date().toLocaleTimeString('id-ID', { hour12: false });
         gasChart.data.labels.push(now); gasChart.data.datasets[0].data.push(massData.pm1_in); gasChart.data.datasets[1].data.push(massData.co_in);
@@ -219,6 +224,7 @@ db.ref('/sensorData').on('value', (snap) => {
         gasChart.update('none'); particleChart.update('none'); gasChartOut.update('none'); particleChartOut.update('none');
     }
     
+    // Update Comparison Live
     if(compPm1 && chartMode === 'live') {
         let now = new Date().toLocaleTimeString('id-ID', { hour12: false });
         const pC = (ch, vI, vO) => { ch.data.labels.push(now); ch.data.datasets[0].data.push(vI); ch.data.datasets[1].data.push(vO); if(ch.data.labels.length>maxDataPoints){ ch.data.labels.shift(); ch.data.datasets[0].data.shift(); ch.data.datasets[1].data.shift(); } ch.update('none'); };
@@ -237,15 +243,15 @@ function fetchAggregatedData(start, end, format, callback) {
         if(dm.length===0) return callback([]);
 
         if (format === 'raw') {
-            callback(dm.map(r => ({ w: formatWaktuKTI(r.wAsli), s_in: r.suhu_indoor||0, h_in: r.hum_indoor||0, p1_in: r.pm1_indoor||0, c_in: convertToMass(r.co_indoor||0,'CO'), p2_in: r.pm25_indoor||0, p10_in: r.pm10_indoor||0, s_out: r.suhu_outdoor||0, h_out: r.hum_outdoor||0, p1_out: r.pm1_outdoor||0, c_out: convertToMass(r.co_outdoor||0,'CO'), p2_out: r.pm25_outdoor||0, p10_out: r.pm10_outdoor||0 })));
+            callback(dm.map(r => ({ w: formatWaktuKTI(r.wAsli), s_in: r.suhu_indoor||0, h_in: r.hum_indoor||0, p0_in: r.pm1_indoor||0, c_in: convertToMass(r.co_indoor||0,'CO'), p2_in: r.pm25_indoor||0, p1_in: r.pm10_indoor||0, s_out: r.suhu_outdoor||0, h_out: r.hum_outdoor||0, p0_out: r.pm1_outdoor||0, c_out: convertToMass(r.co_outdoor||0,'CO'), p2_out: r.pm25_outdoor||0, p1_out: r.pm10_outdoor||0 })));
         } else {
             let gw = {};
             dm.forEach(r => { 
                 let t = r.wAsli; let lbl = format === 'hourly' ? formatWaktuKTI(new Date(t.getFullYear(), t.getMonth(), t.getDate(), t.getHours(), 0, 0)) : formatWaktuKTI(new Date(t.getFullYear(), t.getMonth(), t.getDate()), true, false);
-                if(!gw[lbl]) gw[lbl]={c:0,si:0,hi:0,p1i:0,c0i:0,p2i:0,p10i:0,so:0,ho:0,p1o:0,c0o:0,p2o:0,p10o:0};
-                gw[lbl].c++; gw[lbl].si+=r.suhu_indoor||0; gw[lbl].hi+=r.hum_indoor||0; gw[lbl].p1i+=r.pm1_indoor||0; gw[lbl].c0i+=convertToMass(r.co_indoor||0,'CO'); gw[lbl].p2i+=r.pm25_indoor||0; gw[lbl].p10i+=r.pm10_indoor||0; gw[lbl].so+=r.suhu_outdoor||0; gw[lbl].ho+=r.hum_outdoor||0; gw[lbl].p1o+=r.pm1_outdoor||0; gw[lbl].c0o+=convertToMass(r.co_outdoor||0,'CO'); gw[lbl].p2o+=r.pm25_outdoor||0; gw[lbl].p10o+=r.pm10_outdoor||0;
+                if(!gw[lbl]) gw[lbl]={c:0,si:0,hi:0,p0i:0,c0i:0,p2i:0,p1i:0,so:0,ho:0,p0o:0,c0o:0,p2o:0,p1o:0};
+                gw[lbl].c++; gw[lbl].si+=r.suhu_indoor||0; gw[lbl].hi+=r.hum_indoor||0; gw[lbl].p0i+=r.pm1_indoor||0; gw[lbl].c0i+=convertToMass(r.co_indoor||0,'CO'); gw[lbl].p2i+=r.pm25_indoor||0; gw[lbl].p1i+=r.pm10_indoor||0; gw[lbl].so+=r.suhu_outdoor||0; gw[lbl].ho+=r.hum_outdoor||0; gw[lbl].p0o+=r.pm1_outdoor||0; gw[lbl].c0o+=convertToMass(r.co_outdoor||0,'CO'); gw[lbl].p2o+=r.pm25_outdoor||0; gw[lbl].p1o+=r.pm10_outdoor||0;
             });
-            let dx = []; for (let w in gw) { let g=gw[w], c=g.c; dx.push({ w: w, s_in: g.si/c, h_in: g.hi/c, p1_in: g.p1i/c, c_in: g.c0i/c, p2_in: g.p2i/c, p10_in: g.p10i/c, s_out: g.so/c, h_out: g.ho/c, p1_out: g.p1o/c, c_out: g.c0o/c, p2_out: g.p2o/c, p10_out: g.p10o/c }); }
+            let dx = []; for (let w in gw) { let g=gw[w], c=g.c; dx.push({ w: w, s_in: g.si/c, h_in: g.hi/c, p0_in: g.p0i/c, c_in: g.c0i/c, p2_in: g.p2i/c, p1_in: g.p1i/c, s_out: g.so/c, h_out: g.ho/c, p0_out: g.p0o/c, c_out: g.c0o/c, p2_out: g.p2o/c, p1_out: g.p1o/c }); }
             callback(dx);
         }
     });
@@ -257,7 +263,7 @@ function renderDynamicTable(dataArray, sensorType) {
     
     let hHTML = `<tr><th rowspan="2" style="background:#e2e8f0; border-right:1px solid #cbd5e1;">Waktu</th><th colspan="${sensorType==='all'?6:1}">RECEIVER</th><th colspan="${sensorType==='all'?6:1}">SENDER</th></tr><tr>`;
     const cols = {
-        'suhu': '<th>Suhu (°C)</th>', 'hum': '<th>Hum (%)</th>', 'pm1': '<th>PM 1.0</th>', 'co': '<th>CO (µg)</th>', 'pm25': '<th>PM 2.5</th>', 'pm10': '<th>PM 10</th>',
+        'suhu': '<th>Suhu (°C)</th>', 'hum': '<th>Hum (%)</th>', 'pm1': '<th>PM 1.0 (µg)</th>', 'co': '<th>CO (µg)</th>', 'pm25': '<th>PM 2.5</th>', 'pm10': '<th>PM 10</th>',
         'all': '<th>Suhu</th><th>Hum</th><th>PM1.0</th><th>CO</th><th>PM2.5</th><th>PM10</th>'
     };
     hHTML += (cols[sensorType] || cols['all']) + (cols[sensorType] || cols['all']) + `</tr>`;
@@ -266,13 +272,13 @@ function renderDynamicTable(dataArray, sensorType) {
     let bHTML = '';
     dataArray.forEach(p => {
         let v_in = '', v_out = '';
-        if(sensorType === 'all') { v_in = `<td>${p.s_in.toFixed(1)}</td><td>${p.h_in.toFixed(1)}</td><td>${p.p1_in.toFixed(1)}</td><td>${p.c_in.toFixed(1)}</td><td>${p.p2_in.toFixed(1)}</td><td>${p.p10_in.toFixed(1)}</td>`; v_out = `<td>${p.s_out.toFixed(1)}</td><td>${p.h_out.toFixed(1)}</td><td>${p.p1_out.toFixed(1)}</td><td>${p.c_out.toFixed(1)}</td><td>${p.p2_out.toFixed(1)}</td><td>${p.p10_out.toFixed(1)}</td>`; }
+        if(sensorType === 'all') { v_in = `<td>${p.s_in.toFixed(1)}</td><td>${p.h_in.toFixed(1)}</td><td>${p.p0_in.toFixed(1)}</td><td>${p.c_in.toFixed(1)}</td><td>${p.p2_in.toFixed(1)}</td><td>${p.p1_in.toFixed(1)}</td>`; v_out = `<td>${p.s_out.toFixed(1)}</td><td>${p.h_out.toFixed(1)}</td><td>${p.p0_out.toFixed(1)}</td><td>${p.c_out.toFixed(1)}</td><td>${p.p2_out.toFixed(1)}</td><td>${p.p1_out.toFixed(1)}</td>`; }
         else if(sensorType === 'suhu') { v_in = `<td>${p.s_in.toFixed(1)}</td>`; v_out = `<td>${p.s_out.toFixed(1)}</td>`; }
         else if(sensorType === 'hum') { v_in = `<td>${p.h_in.toFixed(1)}</td>`; v_out = `<td>${p.h_out.toFixed(1)}</td>`; }
-        else if(sensorType === 'pm1') { v_in = `<td>${p.p1_in.toFixed(1)}</td>`; v_out = `<td>${p.p1_out.toFixed(1)}</td>`; }
+        else if(sensorType === 'pm1') { v_in = `<td>${p.p0_in.toFixed(1)}</td>`; v_out = `<td>${p.p0_out.toFixed(1)}</td>`; }
         else if(sensorType === 'co') { v_in = `<td>${p.c_in.toFixed(1)}</td>`; v_out = `<td>${p.c_out.toFixed(1)}</td>`; }
         else if(sensorType === 'pm25') { v_in = `<td>${p.p2_in.toFixed(1)}</td>`; v_out = `<td>${p.p2_out.toFixed(1)}</td>`; }
-        else if(sensorType === 'pm10') { v_in = `<td>${p.p10_in.toFixed(1)}</td>`; v_out = `<td>${p.p10_out.toFixed(1)}</td>`; }
+        else if(sensorType === 'pm10') { v_in = `<td>${p.p1_in.toFixed(1)}</td>`; v_out = `<td>${p.p1_out.toFixed(1)}</td>`; }
         bHTML += `<tr><td style="background:#f8fafc; font-weight:bold; border-right:1px solid #cbd5e1; color:#0f172a;">${p.w}</td>${v_in}${v_out}</tr>`;
     });
     body.innerHTML = bHTML;
@@ -297,10 +303,10 @@ window.processDownload = function() {
             let row = { "Waktu": p.w };
             if(sensorType === 'all' || sensorType === 'suhu') { row["Suhu Recv"] = +(p.s_in).toFixed(1); row["Suhu Send"] = +(p.s_out).toFixed(1); }
             if(sensorType === 'all' || sensorType === 'hum') { row["Hum Recv"] = +(p.h_in).toFixed(1); row["Hum Send"] = +(p.h_out).toFixed(1); }
-            if(sensorType === 'all' || sensorType === 'pm1') { row["PM1.0 Recv"] = +(p.p1_in).toFixed(1); row["PM1.0 Send"] = +(p.p1_out).toFixed(1); }
+            if(sensorType === 'all' || sensorType === 'pm1') { row["PM1.0 Recv"] = +(p.p0_in).toFixed(1); row["PM1.0 Send"] = +(p.p0_out).toFixed(1); }
             if(sensorType === 'all' || sensorType === 'co') { row["CO Recv"] = +(p.c_in).toFixed(1); row["CO Send"] = +(p.c_out).toFixed(1); }
             if(sensorType === 'all' || sensorType === 'pm25') { row["PM2.5 Recv"] = +(p.p2_in).toFixed(1); row["PM2.5 Send"] = +(p.p2_out).toFixed(1); }
-            if(sensorType === 'all' || sensorType === 'pm10') { row["PM10 Recv"] = +(p.p10_in).toFixed(1); row["PM10 Send"] = +(p.p10_out).toFixed(1); }
+            if(sensorType === 'all' || sensorType === 'pm10') { row["PM10 Recv"] = +(p.p1_in).toFixed(1); row["PM10 Send"] = +(p.p1_out).toFixed(1); }
             return row;
         });
         const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dx), "Data_KTI"); XLSX.writeFile(wb, `Data_AirQuality_${sensorType}_${format}.xlsx`);
