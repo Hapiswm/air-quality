@@ -14,9 +14,9 @@ let chartMode = 'live';
 // 2. LOGIKA MATEMATIKA ISPU & MASSA 
 // =========================================================================
 function convertToMass(value, gasType) {
-    // RUMUS PERKALIAN DIMATIKAN!
-    // Karena ESP32 sudah mengirim data ug/m3, web tidak perlu mengalikannya lagi.
-    // Dijamin angka di Serial Monitor dan Web akan 100% SAMA PERSIS!
+    // Karena ESP32 tidak diubah dan tetap mengirim PPM, 
+    // maka Web WAJIB mengalikannya dengan 1145.6 agar menjadi ug/m3
+    if (gasType === 'CO') return value * 1145.6; 
     return value; 
 }
 
