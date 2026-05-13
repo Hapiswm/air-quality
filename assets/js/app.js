@@ -197,15 +197,24 @@ db.ref('/sensorData').on('value', (snap) => {
         let score = calculateISPU(s.val, s.type);
         let st = getISPUStatus(score);
 
-        if(document.getElementById(`needle-${s.id}`)) document.getElementById(`needle-${s.id}`).style.transform = `rotate(${valueToAngle(score)}deg)`;
-        if(document.getElementById(`val-${s.id}`)) document.getElementById(`val-${s.id}`).innerHTML = `${s.val.toFixed(1)}`;
-        if(document.getElementById(`stat-${s.id}`)) { document.getElementById(`stat-${s.id}`).innerText = `ISPU: ${score} (${st.text})`; document.getElementById(`stat-${s.id}`).style.color = st.color; }
+        // KODE ANTI ERROR (Cek ID satu-satu sebelum update)
+        let elNeedle = document.getElementById(`needle-${s.id}`);
+        if(elNeedle) elNeedle.style.transform = `rotate(${valueToAngle(score)}deg)`;
 
-        if(document.getElementById(`val-${s.id}`)) document.getElementById(`val-${s.id}`).innerText = s.val.toFixed(1);
-        if(document.getElementById(`stat-${s.id}`) && document.getElementById(`card-${s.id}`)) { 
-            document.getElementById(`stat-${s.id}`).innerText = st.text; document.getElementById(`stat-${s.id}`).style.color = st.color;
-            document.getElementById(`emo-${s.id}`).innerText = st.emoji; document.getElementById(`card-${s.id}`).style.borderTopColor = st.color; 
+        let elVal = document.getElementById(`val-${s.id}`);
+        if(elVal) elVal.innerText = s.val.toFixed(1);
+
+        let elStat = document.getElementById(`stat-${s.id}`);
+        if(elStat) {
+            elStat.innerText = st.text;
+            elStat.style.color = st.color;
         }
+
+        let elEmo = document.getElementById(`emo-${s.id}`);
+        if(elEmo) elEmo.innerText = st.emoji;
+
+        let elCard = document.getElementById(`card-${s.id}`);
+        if(elCard) elCard.style.borderTopColor = st.color;
     });
 
     if(gasChart && particleChart && gasChartOut && particleChartOut) {
