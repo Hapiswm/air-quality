@@ -13,6 +13,7 @@ let chartMode = 'live';
 // =========================================================================
 // 2. LOGIKA MATEMATIKA ISPU & MASSA 
 // =========================================================================
+// Di sinilah PPM murni dari ESP32 dikonversi menjadi ug/m3
 function convertToMass(ppm, gasType) {
     if (gasType === 'CO') return ppm * 1145.6; 
     return ppm; 
@@ -75,18 +76,22 @@ function fetchHistoricalDataForCharts(chartsObj, isDashboard) {
         snap.forEach(child => {
             let d = child.val();
             let tStr = new Date(getRealTimeFromFirebaseKey(child.key)).toLocaleTimeString('id-ID', { hour12: false });
-            let c0i = convertToMass(d.co_indoor||0,'CO');
-            let c0o = convertToMass(d.co_outdoor||0,'CO');
+            
+            // Perbaikan kunci database ke mq7_indoor dan mq135_indoor
+            let p1i = d.mq135_indoor || 0;
+            let c0i = convertToMass(d.mq7_indoor || 0, 'CO');
+            let p1o = d.mq135_outdoor || 0;
+            let c0o = convertToMass(d.mq7_outdoor || 0, 'CO');
 
             if (isDashboard) {
-                chartsObj.gas.data.labels.push(tStr); chartsObj.gas.data.datasets[0].data.push(d.pm1_indoor||0); chartsObj.gas.data.datasets[1].data.push(c0i);
+                chartsObj.gas.data.labels.push(tStr); chartsObj.gas.data.datasets[0].data.push(p1i); chartsObj.gas.data.datasets[1].data.push(c0i);
                 chartsObj.part.data.labels.push(tStr); chartsObj.part.data.datasets[0].data.push(d.pm25_indoor||0); chartsObj.part.data.datasets[1].data.push(d.pm10_indoor||0);
-                chartsObj.gasOut.data.labels.push(tStr); chartsObj.gasOut.data.datasets[0].data.push(d.pm1_outdoor||0); chartsObj.gasOut.data.datasets[1].data.push(c0o);
+                chartsObj.gasOut.data.labels.push(tStr); chartsObj.gasOut.data.datasets[0].data.push(p1o); chartsObj.gasOut.data.datasets[1].data.push(c0o);
                 chartsObj.partOut.data.labels.push(tStr); chartsObj.partOut.data.datasets[0].data.push(d.pm25_outdoor||0); chartsObj.partOut.data.datasets[1].data.push(d.pm10_outdoor||0);
             } else {
                 chartsObj.suhu.data.labels.push(tStr); chartsObj.suhu.data.datasets[0].data.push(d.suhu_indoor||0); chartsObj.suhu.data.datasets[1].data.push(d.suhu_outdoor||0);
                 chartsObj.hum.data.labels.push(tStr); chartsObj.hum.data.datasets[0].data.push(d.hum_indoor||0); chartsObj.hum.data.datasets[1].data.push(d.hum_outdoor||0);
-                chartsObj.p1.data.labels.push(tStr); chartsObj.p1.data.datasets[0].data.push(d.pm1_indoor||0); chartsObj.p1.data.datasets[1].data.push(d.pm1_outdoor||0);
+                chartsObj.p1.data.labels.push(tStr); chartsObj.p1.data.datasets[0].data.push(p1i); chartsObj.p1.data.datasets[1].data.push(p1o);
                 chartsObj.c0.data.labels.push(tStr); chartsObj.c0.data.datasets[0].data.push(c0i); chartsObj.c0.data.datasets[1].data.push(c0o);
                 chartsObj.p25.data.labels.push(tStr); chartsObj.p25.data.datasets[0].data.push(d.pm25_indoor||0); chartsObj.p25.data.datasets[1].data.push(d.pm25_outdoor||0);
                 chartsObj.p10.data.labels.push(tStr); chartsObj.p10.data.datasets[0].data.push(d.pm10_indoor||0); chartsObj.p10.data.datasets[1].data.push(d.pm10_outdoor||0);
@@ -114,8 +119,8 @@ function loadChartDataByRange(startMs, endMs) {
             let tStr = formatWaktuKTI(d.wAsli, true, true);
             compSuhu.data.labels.push(tStr); compSuhu.data.datasets[0].data.push(d.suhu_indoor||0); compSuhu.data.datasets[1].data.push(d.suhu_outdoor||0);
             compHum.data.labels.push(tStr); compHum.data.datasets[0].data.push(d.hum_indoor||0); compHum.data.datasets[1].data.push(d.hum_outdoor||0);
-            compPm1.data.labels.push(tStr); compPm1.data.datasets[0].data.push(d.pm1_indoor||0); compPm1.data.datasets[1].data.push(d.pm1_outdoor||0);
-            compCo.data.labels.push(tStr); compCo.data.datasets[0].data.push(convertToMass(d.co_indoor||0,'CO')); compCo.data.datasets[1].data.push(convertToMass(d.co_outdoor||0,'CO'));
+            compPm1.data.labels.push(tStr); compPm1.data.datasets[0].data.push(d.mq135_indoor||0); compPm1.data.datasets[1].data.push(d.mq135_outdoor||0);
+            compCo.data.labels.push(tStr); compCo.data.datasets[0].data.push(convertToMass(d.mq7_indoor||0,'CO')); compCo.data.datasets[1].data.push(convertToMass(d.mq7_outdoor||0,'CO'));
             compPm25.data.labels.push(tStr); compPm25.data.datasets[0].data.push(d.pm25_indoor||0); compPm25.data.datasets[1].data.push(d.pm25_outdoor||0);
             compPm10.data.labels.push(tStr); compPm10.data.datasets[0].data.push(d.pm10_indoor||0); compPm10.data.datasets[1].data.push(d.pm10_outdoor||0);
         });
@@ -179,11 +184,16 @@ db.ref('/sensorData').on('value', (snap) => {
     if(document.getElementById('val-suhu-send-spd')) document.getElementById('val-suhu-send-spd').innerText = (d.suhu_outdoor||0).toFixed(1) + " °C";
     if(document.getElementById('val-hum-send-spd')) document.getElementById('val-hum-send-spd').innerText = (d.hum_outdoor||0).toFixed(1) + " %";
 
+    // MENGAMBIL DATA MURNI DARI DATABASE DAN MENGKONVERSINYA DI WEB
     let massData = {
-        pm1_in: d.pm1_indoor||0, co_in: convertToMass(d.co_indoor||0, 'CO'),
-        pm25_in: d.pm25_indoor||0, pm10_in: d.pm10_indoor||0,
-        pm1_out: d.pm1_outdoor||0, co_out: convertToMass(d.co_outdoor||0, 'CO'),
-        pm25_out: d.pm25_outdoor||0, pm10_out: d.pm10_outdoor||0
+        pm1_in: d.mq135_indoor||0, 
+        co_in: convertToMass(d.mq7_indoor||0, 'CO'),
+        pm25_in: d.pm25_indoor||0, 
+        pm10_in: d.pm10_indoor||0,
+        pm1_out: d.mq135_outdoor||0, 
+        co_out: convertToMass(d.mq7_outdoor||0, 'CO'),
+        pm25_out: d.pm25_outdoor||0, 
+        pm10_out: d.pm10_outdoor||0
     };
 
     const sensors = [
@@ -243,13 +253,27 @@ function fetchAggregatedData(start, end, format, callback) {
         if(dm.length===0) return callback([]);
 
         if (format === 'raw') {
-            callback(dm.map(r => ({ w: formatWaktuKTI(r.wAsli), s_in: r.suhu_indoor||0, h_in: r.hum_indoor||0, p0_in: r.pm1_indoor||0, c_in: convertToMass(r.co_indoor||0,'CO'), p2_in: r.pm25_indoor||0, p1_in: r.pm10_indoor||0, s_out: r.suhu_outdoor||0, h_out: r.hum_outdoor||0, p0_out: r.pm1_outdoor||0, c_out: convertToMass(r.co_outdoor||0,'CO'), p2_out: r.pm25_outdoor||0, p1_out: r.pm10_outdoor||0 })));
+            callback(dm.map(r => ({ 
+                w: formatWaktuKTI(r.wAsli), 
+                s_in: r.suhu_indoor||0, h_in: r.hum_indoor||0, 
+                p0_in: r.mq135_indoor||0, c_in: convertToMass(r.mq7_indoor||0,'CO'), 
+                p2_in: r.pm25_indoor||0, p1_in: r.pm10_indoor||0, 
+                s_out: r.suhu_outdoor||0, h_out: r.hum_outdoor||0, 
+                p0_out: r.mq135_outdoor||0, c_out: convertToMass(r.mq7_outdoor||0,'CO'), 
+                p2_out: r.pm25_outdoor||0, p1_out: r.pm10_outdoor||0 
+            })));
         } else {
             let gw = {};
             dm.forEach(r => { 
                 let t = r.wAsli; let lbl = format === 'hourly' ? formatWaktuKTI(new Date(t.getFullYear(), t.getMonth(), t.getDate(), t.getHours(), 0, 0)) : formatWaktuKTI(new Date(t.getFullYear(), t.getMonth(), t.getDate()), true, false);
                 if(!gw[lbl]) gw[lbl]={c:0,si:0,hi:0,p0i:0,c0i:0,p2i:0,p1i:0,so:0,ho:0,p0o:0,c0o:0,p2o:0,p1o:0};
-                gw[lbl].c++; gw[lbl].si+=r.suhu_indoor||0; gw[lbl].hi+=r.hum_indoor||0; gw[lbl].p0i+=r.pm1_indoor||0; gw[lbl].c0i+=convertToMass(r.co_indoor||0,'CO'); gw[lbl].p2i+=r.pm25_indoor||0; gw[lbl].p1i+=r.pm10_indoor||0; gw[lbl].so+=r.suhu_outdoor||0; gw[lbl].ho+=r.hum_outdoor||0; gw[lbl].p0o+=r.pm1_outdoor||0; gw[lbl].c0o+=convertToMass(r.co_outdoor||0,'CO'); gw[lbl].p2o+=r.pm25_outdoor||0; gw[lbl].p1o+=r.pm10_outdoor||0;
+                gw[lbl].c++; 
+                gw[lbl].si+=r.suhu_indoor||0; gw[lbl].hi+=r.hum_indoor||0; 
+                gw[lbl].p0i+=r.mq135_indoor||0; gw[lbl].c0i+=convertToMass(r.mq7_indoor||0,'CO'); 
+                gw[lbl].p2i+=r.pm25_indoor||0; gw[lbl].p1i+=r.pm10_indoor||0; 
+                gw[lbl].so+=r.suhu_outdoor||0; gw[lbl].ho+=r.hum_outdoor||0; 
+                gw[lbl].p0o+=r.mq135_outdoor||0; gw[lbl].c0o+=convertToMass(r.mq7_outdoor||0,'CO'); 
+                gw[lbl].p2o+=r.pm25_outdoor||0; gw[lbl].p1o+=r.pm10_outdoor||0;
             });
             let dx = []; for (let w in gw) { let g=gw[w], c=g.c; dx.push({ w: w, s_in: g.si/c, h_in: g.hi/c, p0_in: g.p0i/c, c_in: g.c0i/c, p2_in: g.p2i/c, p1_in: g.p1i/c, s_out: g.so/c, h_out: g.ho/c, p0_out: g.p0o/c, c_out: g.c0o/c, p2_out: g.p2o/c, p1_out: g.p1o/c }); }
             callback(dx);
