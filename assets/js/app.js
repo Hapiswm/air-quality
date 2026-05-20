@@ -14,8 +14,6 @@ let chartMode = 'live';
 // 2. LOGIKA MATEMATIKA ISPU & MASSA 
 // =========================================================================
 function convertToMass(value, gasType) {
-    // Karena ESP32 tidak diubah dan tetap mengirim PPM, 
-    // maka Web WAJIB mengalikannya dengan 1145.6 agar menjadi ug/m3
     if (gasType === 'CO') return value * 1145.6; 
     return value; 
 }
@@ -64,9 +62,20 @@ function formatWaktuKTI(date, inclDate = true, inclTime = true) {
     return `${h}:${min}`;
 }
 
+// === PERBAIKAN ALGORITMA PENCARIAN WAKTU FIREBASE ===
 const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 function getRealTimeFromFirebaseKey(id) {
     let t = 0; for (let i=0; i<8; i++) t = t * 64 + PUSH_CHARS.indexOf(id.charAt(i)); return new Date(t);
+}
+
+// Fungsi baru untuk menerjemahkan input kalender menjadi kode rahasia Firebase
+function generatePushID(now) {
+    let timeStampChars = new Array(8);
+    for (let i = 7; i >= 0; i--) {
+        timeStampChars[i] = PUSH_CHARS.charAt(now % 64);
+        now = Math.floor(now / 64);
+    }
+    return timeStampChars.join('') + '000000000000'; // Tambahkan padding belakang
 }
 
 // =========================================================================
@@ -104,9 +113,24 @@ function clearCompCharts() {
 }
 
 function loadChartDataByRange(startMs, endMs) {
-    db.ref('/logs').limitToLast(15000).once('value').then(snap => {
-        let filtered = []; snap.forEach(c => { let t=getRealTimeFromFirebaseKey(c.key); if(t>=startMs && t<=endMs){ let d=c.val(); d.wAsli=t; filtered.push(d); } });
-        if(filtered.length === 0) return alert("Data kosong pada rentang waktu yang Anda pilih.");
+    // === PERBAIKAN PENCARIAN TANGGAL SPESIFIK ===
+    let startKey = generatePushID(startMs.getTime());
+    let endKey = generatePushID(endMs.getTime() + 1000); // +1 detik buffer
+
+    db.ref('/logs').orderByKey().startAt(startKey).endAt(endKey).once('value').then(snap => {
+        let filtered = []; 
+        snap.forEach(c => { 
+            let t = getRealTimeFromFirebaseKey(c.key); 
+            let d = c.val(); 
+            d.wAsli = t; 
+            filtered.push(d); 
+        });
+
+        if(filtered.length === 0) {
+            clearCompCharts();
+            compSuhu.update(); compHum.update(); compPm1.update(); compCo.update(); compPm25.update(); compPm10.update();
+            return alert("Data kosong pada rentang waktu yang Anda pilih.");
+        }
 
         let sampled = []; let step = Math.ceil(filtered.length / 50); 
         for(let i=0; i<filtered.length; i+=step) sampled.push(filtered[i]);
@@ -197,7 +221,6 @@ db.ref('/sensorData').on('value', (snap) => {
         let score = calculateISPU(s.val, s.type);
         let st = getISPUStatus(score);
 
-        // KODE ANTI ERROR (Cek ID satu-satu sebelum update)
         let elNeedle = document.getElementById(`needle-${s.id}`);
         if(elNeedle) elNeedle.style.transform = `rotate(${valueToAngle(score)}deg)`;
 
@@ -243,8 +266,19 @@ db.ref('/sensorData').on('value', (snap) => {
 // 5. FITUR FILTER TABLE & EXCEL
 // =========================================================================
 function fetchAggregatedData(start, end, format, callback) {
-    db.ref('/logs').limitToLast(30000).once('value').then(snap => {
-        let dm = []; snap.forEach(c => { let t = getRealTimeFromFirebaseKey(c.key); if(t>=start && t<=end){ let r=c.val(); r.wAsli=t; dm.push(r); } });
+    // === PERBAIKAN PENCARIAN TANGGAL SPESIFIK ===
+    let startKey = generatePushID(start.getTime());
+    let endKey = generatePushID(end.getTime() + 1000); // +1 detik buffer
+
+    db.ref('/logs').orderByKey().startAt(startKey).endAt(endKey).once('value').then(snap => {
+        let dm = []; 
+        snap.forEach(c => { 
+            let t = getRealTimeFromFirebaseKey(c.key); 
+            let r = c.val(); 
+            r.wAsli = t; 
+            dm.push(r); 
+        });
+        
         if(dm.length===0) return callback([]);
 
         if (format === 'raw') {
