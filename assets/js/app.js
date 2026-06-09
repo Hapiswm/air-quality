@@ -21,7 +21,7 @@ function convertToMass(value, gasType) {
 const ispuLimits = {
     'PM10': [[0,50,0,50], [51,150,51,100], [151,350,101,200], [351,420,201,300], [421,500,301,500]],
     'PM25': [[0,15.5,0,50], [15.6,55.4,51,100], [55.5,150.4,101,200], [150.5,250.4,201,300], [250.5,500,301,500]],
-    'PM1':  [[0,10,0,50], [10.1,30,51,100], [30.1,80,101,200], [80.1,150,201,300], [150.1,300,301,500]],
+    'NO2':  [[0,10,0,50], [10.1,30,51,100], [30.1,80,101,200], [80.1,150,201,300], [150.1,300,301,500]], // Diubah dari PM1 ke NO2
     'CO':   [[0,4000,0,50], [4001,8000,51,100], [8001,15000,101,200], [15001,30000,201,300], [30001,45000,301,500]]
 };
 
@@ -62,20 +62,18 @@ function formatWaktuKTI(date, inclDate = true, inclTime = true) {
     return `${h}:${min}`;
 }
 
-// === PERBAIKAN ALGORITMA PENCARIAN WAKTU FIREBASE ===
 const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 function getRealTimeFromFirebaseKey(id) {
     let t = 0; for (let i=0; i<8; i++) t = t * 64 + PUSH_CHARS.indexOf(id.charAt(i)); return new Date(t);
 }
 
-// Fungsi baru untuk menerjemahkan input kalender menjadi kode rahasia Firebase
 function generatePushID(now) {
     let timeStampChars = new Array(8);
     for (let i = 7; i >= 0; i--) {
         timeStampChars[i] = PUSH_CHARS.charAt(now % 64);
         now = Math.floor(now / 64);
     }
-    return timeStampChars.join('') + '000000000000'; // Tambahkan padding belakang
+    return timeStampChars.join('') + '000000000000'; 
 }
 
 // =========================================================================
@@ -113,9 +111,8 @@ function clearCompCharts() {
 }
 
 function loadChartDataByRange(startMs, endMs) {
-    // === PERBAIKAN PENCARIAN TANGGAL SPESIFIK ===
     let startKey = generatePushID(startMs.getTime());
-    let endKey = generatePushID(endMs.getTime() + 1000); // +1 detik buffer
+    let endKey = generatePushID(endMs.getTime() + 1000); 
 
     db.ref('/logs').orderByKey().startAt(startKey).endAt(endKey).once('value').then(snap => {
         let filtered = []; 
@@ -132,7 +129,12 @@ function loadChartDataByRange(startMs, endMs) {
             return alert("Data kosong pada rentang waktu yang Anda pilih.");
         }
 
-        let sampled = []; let step = Math.ceil(filtered.length / 50); 
+        // --- ALGORITMA PENAMPUNGAN GRAFIK (Solusi Rentang Waktu Panjang) ---
+        let maxTitikGrafik = 300; // Mengizinkan 300 titik data ke kanvas
+        let sampled = []; 
+        let step = Math.ceil(filtered.length / maxTitikGrafik); 
+        if (step < 1) step = 1; 
+        
         for(let i=0; i<filtered.length; i+=step) sampled.push(filtered[i]);
         
         clearCompCharts();
@@ -145,7 +147,7 @@ function loadChartDataByRange(startMs, endMs) {
             compPm25.data.labels.push(tStr); compPm25.data.datasets[0].data.push(d.pm25_indoor||0); compPm25.data.datasets[1].data.push(d.pm25_outdoor||0);
             compPm10.data.labels.push(tStr); compPm10.data.datasets[0].data.push(d.pm10_indoor||0); compPm10.data.datasets[1].data.push(d.pm10_outdoor||0);
         });
-        compSuhu.update(); compHum.update(); compPm1.update(); compCo.update(); compPm25.update(); compPm10.update();
+        compSuhu.update('none'); compHum.update('none'); compPm1.update('none'); compCo.update('none'); compPm25.update('none'); compPm10.update('none');
     });
 }
 
@@ -159,6 +161,7 @@ window.changeChartMode = function() {
         else if(val === '24h') { chartMode = 'history'; let e=new Date(); let s=new Date(e.getTime() - 24*60*60*1000); loadChartDataByRange(s, e); }
     }
 }
+
 window.applyCustomChart = function() {
     let s = document.getElementById('chart-start').value, e = document.getElementById('chart-end').value;
     if(!s || !e) return alert("Pilih tanggal dan jam Mulai & Selesai terlebih dahulu!");
@@ -169,9 +172,10 @@ function initDashboardCharts() {
     if (typeof Chart === 'undefined') return; Chart.defaults.color = '#64748b';
     const cnf = (l1, c1, l2, c2) => ({ type: 'line', data: { labels: [], datasets: [{ label: l1, borderColor: c1, backgroundColor: c1+'1A', fill: true, tension: 0.4, data: [] }, { label: l2, borderColor: c2, backgroundColor: c2+'1A', fill: true, tension: 0.4, data: [] }]}, options: { responsive: true, maintainAspectRatio: false } });
     
-    gasChart = new Chart(document.getElementById('gasChart').getContext('2d'), cnf('PM 1.0', '#f59e0b', 'CO', '#ef4444'));
+    // Label Chart diganti dari PM 1.0 menjadi NO2
+    gasChart = new Chart(document.getElementById('gasChart').getContext('2d'), cnf('NO2', '#f59e0b', 'CO', '#ef4444'));
     particleChart = new Chart(document.getElementById('particleChart').getContext('2d'), cnf('PM 2.5', '#10b981', 'PM 10', '#3b82f6'));
-    gasChartOut = new Chart(document.getElementById('gasChartOut').getContext('2d'), cnf('PM 1.0', '#f59e0b', 'CO', '#ef4444'));
+    gasChartOut = new Chart(document.getElementById('gasChartOut').getContext('2d'), cnf('NO2', '#f59e0b', 'CO', '#ef4444'));
     particleChartOut = new Chart(document.getElementById('particleChartOut').getContext('2d'), cnf('PM 2.5', '#10b981', 'PM 10', '#3b82f6'));
     fetchHistoricalDataForCharts({gas: gasChart, part: particleChart, gasOut: gasChartOut, partOut: particleChartOut}, true);
 }
@@ -210,10 +214,11 @@ db.ref('/sensorData').on('value', (snap) => {
         pm25_out: d.pm25_outdoor||0, pm10_out: d.pm10_outdoor||0
     };
 
+    // Type ISPU diganti dari PM1 menjadi NO2
     const sensors = [
-        {val: massData.pm1_in, id:'pm1-recv', type:'PM1'}, {val: massData.co_in, id:'co-recv', type:'CO'},
+        {val: massData.pm1_in, id:'pm1-recv', type:'NO2'}, {val: massData.co_in, id:'co-recv', type:'CO'},
         {val: massData.pm25_in, id:'pm25-recv', type:'PM25'}, {val: massData.pm10_in, id:'pm10-recv', type:'PM10'},
-        {val: massData.pm1_out, id:'pm1-send', type:'PM1'}, {val: massData.co_out, id:'co-send', type:'CO'},
+        {val: massData.pm1_out, id:'pm1-send', type:'NO2'}, {val: massData.co_out, id:'co-send', type:'CO'},
         {val: massData.pm25_out, id:'pm25-send', type:'PM25'}, {val: massData.pm10_out, id:'pm10-send', type:'PM10'}
     ];
 
@@ -266,9 +271,8 @@ db.ref('/sensorData').on('value', (snap) => {
 // 5. FITUR FILTER TABLE & EXCEL
 // =========================================================================
 function fetchAggregatedData(start, end, format, callback) {
-    // === PERBAIKAN PENCARIAN TANGGAL SPESIFIK ===
     let startKey = generatePushID(start.getTime());
-    let endKey = generatePushID(end.getTime() + 1000); // +1 detik buffer
+    let endKey = generatePushID(end.getTime() + 1000); 
 
     db.ref('/logs').orderByKey().startAt(startKey).endAt(endKey).once('value').then(snap => {
         let dm = []; 
@@ -301,9 +305,11 @@ function renderDynamicTable(dataArray, sensorType) {
     if(dataArray.length === 0) { head.innerHTML = ''; body.innerHTML = '<tr><td style="color:#0f172a;">Tidak ada data pada rentang ini.</td></tr>'; return; }
     
     let hHTML = `<tr><th rowspan="2" style="background:#e2e8f0; border-right:1px solid #cbd5e1;">Waktu</th><th colspan="${sensorType==='all'?6:1}">RECEIVER</th><th colspan="${sensorType==='all'?6:1}">SENDER</th></tr><tr>`;
+    
+    // Label Header Tabel Diganti menjadi NO2
     const cols = {
-        'suhu': '<th>Suhu (°C)</th>', 'hum': '<th>Hum (%)</th>', 'pm1': '<th>PM 1.0 (µg)</th>', 'co': '<th>CO (µg)</th>', 'pm25': '<th>PM 2.5</th>', 'pm10': '<th>PM 10</th>',
-        'all': '<th>Suhu</th><th>Hum</th><th>PM1.0</th><th>CO</th><th>PM2.5</th><th>PM10</th>'
+        'suhu': '<th>Suhu (°C)</th>', 'hum': '<th>Hum (%)</th>', 'pm1': '<th>NO2 (ppm)</th>', 'co': '<th>CO (ppm)</th>', 'pm25': '<th>PM 2.5</th>', 'pm10': '<th>PM 10</th>',
+        'all': '<th>Suhu</th><th>Hum</th><th>NO2</th><th>CO</th><th>PM2.5</th><th>PM10</th>'
     };
     hHTML += (cols[sensorType] || cols['all']) + (cols[sensorType] || cols['all']) + `</tr>`;
     head.innerHTML = hHTML;
@@ -342,7 +348,9 @@ window.processDownload = function() {
             let row = { "Waktu": p.w };
             if(sensorType === 'all' || sensorType === 'suhu') { row["Suhu Recv"] = +(p.s_in).toFixed(1); row["Suhu Send"] = +(p.s_out).toFixed(1); }
             if(sensorType === 'all' || sensorType === 'hum') { row["Hum Recv"] = +(p.h_in).toFixed(1); row["Hum Send"] = +(p.h_out).toFixed(1); }
-            if(sensorType === 'all' || sensorType === 'pm1') { row["PM1.0 Recv"] = +(p.p0_in).toFixed(1); row["PM1.0 Send"] = +(p.p0_out).toFixed(1); }
+            
+            // Kolom Export Excel diganti menjadi NO2
+            if(sensorType === 'all' || sensorType === 'pm1') { row["NO2 Recv"] = +(p.p0_in).toFixed(1); row["NO2 Send"] = +(p.p0_out).toFixed(1); }
             if(sensorType === 'all' || sensorType === 'co') { row["CO Recv"] = +(p.c_in).toFixed(1); row["CO Send"] = +(p.c_out).toFixed(1); }
             if(sensorType === 'all' || sensorType === 'pm25') { row["PM2.5 Recv"] = +(p.p2_in).toFixed(1); row["PM2.5 Send"] = +(p.p2_out).toFixed(1); }
             if(sensorType === 'all' || sensorType === 'pm10') { row["PM10 Recv"] = +(p.p1_in).toFixed(1); row["PM10 Send"] = +(p.p1_out).toFixed(1); }
